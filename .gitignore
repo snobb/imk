@@ -1,0 +1,5 @@
+.git
+build_host.h
+*.o
+compat/*.o
+imk
