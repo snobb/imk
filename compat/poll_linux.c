@@ -9,6 +9,7 @@
 #include <unistd.h>
 #include <signal.h>
 #include <errno.h>
+#include <sys/stat.h>
 #include <sys/inotify.h>
 
 #include "../imk.h"
@@ -39,6 +40,11 @@ fd_register(const struct config *cfg, const char *path)
         }
     }
 
+    struct stat st;
+    if ((rv = stat(path, &st)) != 0) {
+        return -1;
+    }
+
     rv = inotify_add_watch(s_ifd, path, FILTERS);
 
     if (rv == -1) {
@@ -66,26 +72,29 @@ fd_dispatch(const struct config *cfg)
         }
 
         for (int i = 0; i < len;) {
-            struct inotify_event *event = (struct inotify_event *)&buf[i];
-            const char *name;
+            struct inotify_event *ev = (struct inotify_event *)&buf[i];
 
             int idx;
             for (idx = 0; idx < cfg->fds.size; ++idx) {
-                if (cfg->fds.data[idx] == event->wd) {
+                if (cfg->fds.data[idx] == ev->wd) {
                     break;
                 }
             }
 
-            int wd;
-            if ((wd = inotify_add_watch(s_ifd, cfg->files[idx], FILTERS)) == -1) {
+            if (idx == cfg->fds.size) {
+                break;  /* not found */
+            }
+
+            int wd = inotify_add_watch(s_ifd, cfg->files[idx], FILTERS);
+            if (wd == -1) {
                 LOG_PERROR("inotify_add_watch");
             }
             cfg->fds.data[idx] = wd;
 
             LOG_INFO_VA("[====== %s (%u) =====]",
-                    cfg->files[idx], event->wd);
+                    cfg->files[idx], ev->wd);
 
-            i += EVENT_SIZE + event->len;
+            i += EVENT_SIZE + ev->len;
         }
 
         system(cfg->cmd);

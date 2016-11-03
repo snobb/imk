@@ -101,9 +101,10 @@ usage(const char *pname)
     fprintf(stderr,
             "usage: %s [-h] -c <command> <file ...>\n\n"
             "   The options are as follows:\n"
-            "      -c <command> - command to execute when event triggered\n"
-            "      <file ...>   - list of files to monitor\n\n"
-            "   Please use quotes around command if it is composed of "
+            "      -h          - display this text and exit\n"
+            "      -c <cmd>    - command to execute when event is triggered\n"
+            "      <file ...>  - list of files to monitor\n\n"
+            "   Please use quotes around the command if it is composed of "
             "multiple words\n\n", pname);
 }
 

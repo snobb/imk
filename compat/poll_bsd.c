@@ -86,7 +86,7 @@ set_watch(const char *path)
 {
     int fd = open(path, O_RDONLY);
     if (fd == -1) {
-        LOG_PERROR("open");
+        return fd;
     }
 
     struct kevent ev;
