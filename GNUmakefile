@@ -1,16 +1,18 @@
 TARGET          := imk
 CC              ?= cc
 BUILD_HOST      := build_host.h
-SRC             != (ls *.c || true)
-OS              != (uname -s || true)
+SRC             := $(wildcard *.c)
+OS              := $(shell uname -s)
 
-.if $(OS) == Linux
+ifeq ($(OS), Linux)
     GRP    := root
     SRC    += compat/poll_linux.c
-.elif $(OS) == OpenBSD || $(OS) == FreeBSD || $(OS) == Darwin
+else ifeq ($(OS), $(filter $(OS), OpenBSD FreeBSD Darwin))
     GRP    := wheel
     SRC    += compat/poll_bsd.c
-.endif
+else
+    $(error Unrecognized OS)
+endif
 
 INSTALL         := install
 INSTALL_ARGS    := -o root -g $(GRP) -m 755
@@ -24,19 +26,17 @@ LIBS            :=
 CFLAGS          := -Wall $(INCLUDES)
 LFLAGS          := $(LIBS)
 
-.if $(CC) == cc || $(CC) == clang || $(CC) == gcc
+ifeq ($(CC), $(filter $(CC), clang gcc cc))
     CFLAGS := -std=c99 -pedantic
-.endif
-
-.if make(release)
-    CFLAGS += -O3
-.else  # debug
-    CFLAGS += -g -ggdb -DDEBUG
-    LFLAGS += -g
-.endif
+endif
 
 all: debug
+
+debug: CFLAGS += -g -ggdb -DDEBUG
+debug: LFLAGS += -g
 debug: build
+
+release: CFLAGS += -O3
 release: clean build
 	strip $(TARGET)
 
