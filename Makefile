@@ -2,15 +2,15 @@ TARGET          := imk
 CC              ?= cc
 BUILD_HOST      := build_host.h
 SRC             := $(wildcard *.c)
-
 OS              := $(shell uname -s)
 
 ifeq ($(OS), Linux)
-    GRP = root
-    SRC += compat/poll_linux.c
-else ifeq ($(OS),OpenBSD)
-    GRP = wheel
-    SRC += compat/poll_bsd.c
+    GRP    := root
+    SRC    += compat/poll_linux.c
+    CFLAGS += -fdiagnostics-color=auto
+else ifeq ($(OS), $(filter $(OS), OpenBSD FreeBSD Darwin))
+    GRP    := wheel
+    SRC    += compat/poll_bsd.c
 else
     $(error Unrecognized OS)
 endif
@@ -33,7 +33,7 @@ endif
 
 all: debug
 
-debug: CFLAGS += -g -ggdb -DDEBUG -fdiagnostics-color=auto
+debug: CFLAGS += -g -ggdb -DDEBUG
 debug: LFLAGS += -g
 debug: build
 

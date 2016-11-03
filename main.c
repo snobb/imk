@@ -49,7 +49,7 @@ main(int argc, char **argv)
 
     fd_dispatch(&cfg);
 
-    fd_close();
+    fd_close(&cfg);
     array_fd_free(&cfg.fds);
 
     return 0;

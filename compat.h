@@ -3,6 +3,6 @@
 
 int fd_register(const struct config *cfg, const char *path);
 int fd_dispatch(const struct config *cfg);
-void fd_close(void);
+void fd_close(const struct config *cfg);
 
 #endif /* __COMPAT_H__ */

@@ -5,10 +5,10 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
 #include <unistd.h>
 #include <signal.h>
 #include <errno.h>
-#include <stdbool.h>
 #include <sys/inotify.h>
 
 #include "../imk.h"
@@ -17,7 +17,7 @@
 #define EVENT_SIZE      (sizeof(struct inotify_event))
 #define BUF_LEN         (1024 * (EVENT_SIZE + 16))
 
-#define FILTERS              IN_MODIFY | IN_ONESHOT
+#define FILTERS         (IN_MODIFY | IN_ONESHOT)
 
 static int s_ifd = -1;
 static volatile bool s_running = false;
@@ -95,7 +95,7 @@ fd_dispatch(const struct config *cfg)
 }
 
 void
-fd_close(void)
+fd_close(const struct config *cfg)
 {
     if (s_ifd != -1) {
         close(s_ifd);
