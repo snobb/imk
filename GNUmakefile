@@ -40,6 +40,10 @@ release: CFLAGS += -O3
 release: clean build
 	strip $(TARGET)
 
+static: CFLAGS += -static
+static: LFLAGS += -static
+static: release
+
 build: $(BUILD_HOST) $(TARGET)
 
 $(BUILD_HOST):
@@ -64,4 +68,4 @@ clean:
 	-rm -f $(TARGET)
 	-rm -f *.o compat/*.o
 
-.PHONY : all debug release build run clean
+.PHONY : all debug release static build install clean
