@@ -56,7 +56,7 @@ fd_dispatch(const struct config *cfg)
 
         int idx;
         for (idx = 0; idx < cfg->fds.size; ++idx) {
-            if (cfg->fds.data[idx] == (int)ev.udata) {
+            if (cfg->fds.data[idx] == (int)(intptr_t)ev.udata) {
                 break;
             }
         }
