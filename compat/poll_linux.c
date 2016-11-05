@@ -20,8 +20,8 @@
 
 #define FILTERS         (IN_MODIFY | IN_ONESHOT)
 
-static int s_ifd = -1;
-static volatile bool s_running = false;
+static int g_ifd = -1;
+static bool g_running = false;
 
 static void sig_handler(int);
 
@@ -30,11 +30,11 @@ fd_register(const struct config *cfg, const char *path)
 {
     int rv;
 
-    if (s_ifd == -1) {
+    if (g_ifd == -1) {
         signal(SIGINT, sig_handler);
         signal(SIGTERM, sig_handler);
 
-        if ((s_ifd = inotify_init()) == -1) {
+        if ((g_ifd = inotify_init()) == -1) {
             LOG_PERROR("inotify_init");
             exit(1);
         }
@@ -45,7 +45,7 @@ fd_register(const struct config *cfg, const char *path)
         return -1;
     }
 
-    rv = inotify_add_watch(s_ifd, path, FILTERS);
+    rv = inotify_add_watch(g_ifd, path, FILTERS);
 
     if (rv == -1) {
         LOG_PERROR("inotify_add_watch");
@@ -61,9 +61,9 @@ fd_dispatch(const struct config *cfg)
     int rv, len;
     char buf[BUF_LEN];
 
-    s_running = true;
-    while (s_running) {
-        if ((len = read(s_ifd, buf, BUF_LEN)) == -1) {
+    g_running = true;
+    while (g_running) {
+        if ((len = read(g_ifd, buf, BUF_LEN)) == -1) {
             if (errno == EAGAIN || errno == EINTR) {
                 continue;
             }
@@ -85,7 +85,7 @@ fd_dispatch(const struct config *cfg)
                 break;  /* not found */
             }
 
-            int wd = inotify_add_watch(s_ifd, cfg->files[idx], FILTERS);
+            int wd = inotify_add_watch(g_ifd, cfg->files[idx], FILTERS);
             if (wd == -1) {
                 LOG_PERROR("inotify_add_watch");
             }
@@ -106,15 +106,15 @@ fd_dispatch(const struct config *cfg)
 void
 fd_close(const struct config *cfg)
 {
-    if (s_ifd != -1) {
-        close(s_ifd);
+    if (g_ifd != -1) {
+        close(g_ifd);
     }
 }
 
 void
 sig_handler(int sig)
 {
-    s_running = false;
+    g_running = false;
     LOG_ERR("interrupted");
 }
 

@@ -17,8 +17,8 @@
 #include "../imk.h"
 #include "../log.h"
 
-static int s_kq = -1;
-static volatile bool s_running = false;
+static int g_kq = -1;
+static bool g_running = false;
 
 static int set_watch(const char *path);
 static void sig_handler(int);
@@ -26,11 +26,11 @@ static void sig_handler(int);
 int
 fd_register(const struct config *cfg, const char *path)
 {
-    if (s_kq == -1) {
+    if (g_kq == -1) {
         signal(SIGINT, sig_handler);
         signal(SIGTERM, sig_handler);
 
-        if ((s_kq = kqueue()) == -1) {
+        if ((g_kq = kqueue()) == -1) {
             LOG_PERROR("kqueue");
         }
     }
@@ -43,11 +43,11 @@ fd_dispatch(const struct config *cfg)
 {
     struct kevent ev;
 
-    s_running = true;
-    while (s_running) {
+    g_running = true;
+    while (g_running) {
         memset(&ev, 0, sizeof(ev));
 
-        if (kevent(s_kq, NULL, 0, &ev, 1, NULL) == -1) {
+        if (kevent(g_kq, NULL, 0, &ev, 1, NULL) == -1) {
             if (errno == EINTR) {
                 continue;
             }
@@ -74,7 +74,7 @@ fd_dispatch(const struct config *cfg)
 void
 fd_close(const struct config *cfg)
 {
-    close(s_kq);
+    close(g_kq);
 
     for (int i = 0; i < cfg->fds.size; ++i) {
         close(cfg->fds.data[i]);
@@ -94,7 +94,7 @@ set_watch(const char *path)
     EV_SET(&ev, fd, filter, EV_ADD | EV_ONESHOT,
             NOTE_WRITE | NOTE_DELETE, 0, (void*)(intptr_t)fd);
 
-    if (kevent(s_kq, &ev, 1, NULL , 0, NULL) == -1) {
+    if (kevent(g_kq, &ev, 1, NULL , 0, NULL) == -1) {
         LOG_PERROR("kevent");
     }
 
@@ -104,7 +104,7 @@ set_watch(const char *path)
 void
 sig_handler(int sig)
 {
-    s_running = false;
+    g_running = false;
     LOG_ERR("interrupted");
 }
 

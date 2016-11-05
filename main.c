@@ -32,7 +32,7 @@ main(int argc, char **argv)
 
     printf(":: [%s] start monitoring: cmd[%s] files[", get_time(), cfg.cmd);
     const char **files = cfg.files;
-    while(*files != NULL)
+    while (*files != NULL)
     {
         printf("%s", *files++);
         if (*files != NULL) {
@@ -42,7 +42,7 @@ main(int argc, char **argv)
     printf("]\n");
 
     files = cfg.files;
-    while(*files != NULL) {
+    while (*files != NULL) {
         int wd = fd_register(&cfg, *files++);
         array_fd_append(&cfg.fds, wd);
     }
