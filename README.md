@@ -24,3 +24,8 @@ $ ./imk -c 'make release' *.c
 ```
 
 If any of the monitored files are modified, the command will be executed.
+
+Known Issues:
+-------------
+ - when monitoring a directory, the command may be triggered more then once for every change of the contained files.
+ - imk may not detect a change if the monitored file was edited with VIM with swapfiles enabled.
