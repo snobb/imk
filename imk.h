@@ -3,12 +3,10 @@
 
 #include "gen_array.h"
 
-ARRAY_STRUCT(fd, int);
-
 struct config {
     const char *cmd;
     const char **files;
-    struct array_fd fds;
+    ARRAY_STRUCT(fd, int) fds;
 };
 
 #endif /* __IMK_H__ */
