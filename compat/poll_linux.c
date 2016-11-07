@@ -71,6 +71,10 @@ fd_dispatch(const struct config *cfg)
             exit(1);
         }
 
+        if (len == 0) {
+            continue;
+        }
+
         for (int i = 0; i < len;) {
             struct inotify_event *ev = (struct inotify_event *)&buf[i];
 
@@ -85,14 +89,14 @@ fd_dispatch(const struct config *cfg)
                 break;  /* not found */
             }
 
+            LOG_INFO_VA("[====== %s (%u) =====]",
+                    cfg->files[idx], ev->wd);
+
             int wd = inotify_add_watch(g_ifd, cfg->files[idx], FILTERS);
             if (wd == -1) {
                 LOG_PERROR("inotify_add_watch");
             }
             cfg->fds.data[idx] = wd;
-
-            LOG_INFO_VA("[====== %s (%u) =====]",
-                    cfg->files[idx], ev->wd);
 
             i += EVENT_SIZE + ev->len;
         }
