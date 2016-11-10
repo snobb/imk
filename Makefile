@@ -16,7 +16,7 @@ LFLAGS          := $(LIBS)
     CFLAGS := -std=c99 -pedantic
 .endif
 
-.if make(release)
+.if make(release) || make(install)
     CFLAGS += -O3
 .elif make(static)
     CFLAGS += -static
