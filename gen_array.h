@@ -21,7 +21,7 @@
         array->data = calloc(array->alloc, sizeof(TYPE));                    \
         if (array->data == NULL) {                                           \
             perror("calloc");                                                \
-            exit(1);                                                         \
+            exit(EXIT_FAILURE);                                              \
         }                                                                    \
     }                                                                        \
                                                                              \
@@ -34,7 +34,7 @@
             TYPE *new = realloc(array->data, array->size * sizeof(*new));    \
             if (new == NULL) {                                               \
                 perror("realloc");                                           \
-                exit(1);                                                     \
+                exit(EXIT_FAILURE);                                          \
             }                                                                \
             array->data = new;                                               \
         }                                                                    \

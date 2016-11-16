@@ -7,7 +7,7 @@ OS              := $(shell uname -s)
 ifeq ($(OS), Linux)
     GRP    := root
     SRC    += compat/poll_linux.c
-else ifeq ($(OS), $(filter $(OS), OpenBSD FreeBSD Darwin))
+else ifeq ($(OS), $(filter $(OS), NetBSD OpenBSD FreeBSD Darwin))
     GRP    := wheel
     SRC    += compat/poll_bsd.c
 else
