@@ -20,11 +20,13 @@
 static int g_kq = -1;
 static bool g_running = false;
 
+ARRAY_FUNCS(fd, int)  // array handling functions
+
 static int set_watch(const char *path);
 static void sig_handler(int);
 
 int
-fd_register(const struct config *cfg, const char *path)
+fd_register(struct config *cfg, const char *path)
 {
     if (g_kq == -1) {
         signal(SIGINT, sig_handler);
@@ -33,9 +35,13 @@ fd_register(const struct config *cfg, const char *path)
         if ((g_kq = kqueue()) == -1) {
             LOG_PERROR("kqueue");
         }
+
+        array_fd_init(&cfg->fds);
     }
 
-    return set_watch(path);
+    int rv = set_watch(path);
+    array_fd_append(&cfg->fds, rv);
+    return rv;
 }
 
 int
@@ -76,14 +82,15 @@ fd_dispatch(const struct config *cfg)
 }
 
 void
-fd_close(const struct config *cfg)
+fd_close(struct config *cfg)
 {
     close(g_kq);
 
     for (int i = 0; i < cfg->fds.size; ++i) {
         close(cfg->fds.data[i]);
-        cfg->fds.data[i] = -1;
     }
+
+    array_fd_free(&cfg->fds);
 }
 
 int

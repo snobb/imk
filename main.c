@@ -14,8 +14,6 @@
 #include "gen_array.h"
 #include "log.h"
 
-ARRAY_FUNCS(fd, int)
-
 void parse_args(struct config *cfg, int argc, char **argv);
 void usage(const char *pname);
 
@@ -28,14 +26,11 @@ main(int argc, char **argv)
     setbuf(stderr, NULL);
 
     parse_args(&cfg, argc, argv);
-    array_fd_init(&cfg.fds);
 
     printf(":: [%s] start monitoring: cmd[%s] files[", get_time(), cfg.cmd);
     const char **files = cfg.files;
     while (*files != NULL) {
-        int wd = fd_register(&cfg, *files);
-        array_fd_append(&cfg.fds, wd);
-
+        fd_register(&cfg, *files);
         printf("%s", *files++);
         if (*files != NULL) {
             printf(" ");
@@ -45,7 +40,6 @@ main(int argc, char **argv)
 
     fd_dispatch(&cfg);
     fd_close(&cfg);
-    array_fd_free(&cfg.fds);
 
     return EXIT_SUCCESS;
 }

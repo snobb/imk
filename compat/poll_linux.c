@@ -8,6 +8,7 @@
 #include <stdbool.h>
 #include <unistd.h>
 #include <signal.h>
+#include <fcntl.h>
 #include <errno.h>
 #include <sys/stat.h>
 #include <sys/inotify.h>
@@ -23,10 +24,12 @@
 static int g_ifd = -1;
 static bool g_running = false;
 
+ARRAY_FUNCS(fd, int)  // array handling functions
+
 static void sig_handler(int);
 
 int
-fd_register(const struct config *cfg, const char *path)
+fd_register(struct config *cfg, const char *path)
 {
     int rv;
 
@@ -38,6 +41,8 @@ fd_register(const struct config *cfg, const char *path)
             LOG_PERROR("inotify_init");
             exit(1);
         }
+
+        array_fd_init(&cfg->fds);
     }
 
     struct stat st;
@@ -52,6 +57,7 @@ fd_register(const struct config *cfg, const char *path)
         exit(1);
     }
 
+    array_fd_append(&cfg->fds, rv);
     return rv;
 }
 
@@ -107,7 +113,7 @@ fd_dispatch(const struct config *cfg)
 }
 
 void
-fd_close(const struct config *cfg)
+fd_close(struct config *cfg)
 {
     if (g_ifd != -1) {
         close(g_ifd);
@@ -115,8 +121,9 @@ fd_close(const struct config *cfg)
 
     for (int i = 0; i < cfg->fds.size; ++i) {
         close(cfg->fds.data[i]);
-        cfg->fds.data[i] = -1;
     }
+
+    array_fd_free(&cfg->fds);
 }
 
 void

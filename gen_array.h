@@ -13,6 +13,11 @@
         TYPE *data;                                                          \
     }
 
+#define ARRAY_FUNCS_DECLARE(NAME, TYPE)                                      \
+    void array_##NAME##_init(struct array_##NAME *array);                    \
+    void array_##NAME##_append(struct array_##NAME *array, TYPE value);      \
+    void array_##NAME##_free(struct array_##NAME *array);
+
 #define ARRAY_FUNCS(NAME, TYPE)                                              \
     void array_##NAME##_init(struct array_##NAME *array)                     \
     {                                                                        \
