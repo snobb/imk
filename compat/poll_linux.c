@@ -89,8 +89,7 @@ fd_dispatch(const struct config *cfg)
                 break;  /* not found */
             }
 
-            LOG_INFO_VA("[====== %s (%u) =====]",
-                    cfg->files[idx], ev->wd);
+            LOG_INFO_VA("[====== %s (%u) =====]", cfg->files[idx], ev->wd);
 
             int wd = inotify_add_watch(g_ifd, cfg->files[idx], FILTERS);
             if (wd == -1) {
@@ -112,6 +111,11 @@ fd_close(const struct config *cfg)
 {
     if (g_ifd != -1) {
         close(g_ifd);
+    }
+
+    for (int i = 0; i < cfg->fds.size; ++i) {
+        close(cfg->fds.data[i]);
+        cfg->fds.data[i] = -1;
     }
 }
 

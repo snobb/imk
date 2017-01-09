@@ -61,6 +61,10 @@ fd_dispatch(const struct config *cfg)
             }
         }
 
+        if (idx == cfg->fds.size) {
+            break; /* not found */
+        }
+
         int fd = set_watch(cfg->files[idx]);
         cfg->fds.data[idx] = fd;
 
@@ -78,6 +82,7 @@ fd_close(const struct config *cfg)
 
     for (int i = 0; i < cfg->fds.size; ++i) {
         close(cfg->fds.data[i]);
+        cfg->fds.data[i] = -1;
     }
 }
 
