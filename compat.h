@@ -5,4 +5,4 @@ int fd_register(struct config *cfg, const char *path);
 int fd_dispatch(const struct config *cfg);
 void fd_close(struct config *cfg);
 
-#endif /* __COMPAT_H__ */
+#endif /* __IMK_COMPAT_H__ */

@@ -15,11 +15,12 @@
 
 #include "../imk.h"
 #include "../log.h"
+#include "../lua_interp.h"
 
 #define EVENT_SIZE      (sizeof(struct inotify_event))
 #define BUF_LEN         (1024 * (EVENT_SIZE + 16))
 
-#define FILTERS         (IN_MODIFY | IN_MOVE_SELF | IN_EXCL_UNLINK)
+#define FILTERS         (IN_ALL_EVENTS | IN_EXCL_UNLINK)
 
 static int g_ifd = -1;
 static bool g_running = false;
@@ -31,8 +32,6 @@ static void sig_handler(int);
 int
 fd_register(struct config *cfg, const char *path)
 {
-    int rv;
-
     if (g_ifd == -1) {
         signal(SIGINT, sig_handler);
         signal(SIGTERM, sig_handler);
@@ -46,25 +45,24 @@ fd_register(struct config *cfg, const char *path)
     }
 
     struct stat st;
-    if ((rv = stat(path, &st)) != 0) {
+    if (stat(path, &st) != 0) {
         return -1;
     }
 
-    rv = inotify_add_watch(g_ifd, path, FILTERS);
-
-    if (rv == -1) {
+    int fd = inotify_add_watch(g_ifd, path, FILTERS);
+    if (fd == -1) {
         LOG_PERROR("inotify_add_watch");
         exit(1);
     }
 
-    array_fd_append(&cfg->fds, rv);
-    return rv;
+    array_fd_append(&cfg->fds, fd);
+    return fd;
 }
 
 int
 fd_dispatch(const struct config *cfg)
 {
-    int rv, len;
+    int len;
     char buf[BUF_LEN];
 
     g_running = true;
@@ -96,9 +94,31 @@ fd_dispatch(const struct config *cfg)
                 break;  /* not found */
             }
 
-            if ((ev->mask & IN_ATTRIB) || (ev->mask & IN_MODIFY)) {
-                LOG_INFO_VA("[====== %s (%u) =====]", cfg->files[idx], ev->wd);
-                need_cmd = true;
+            if (ev->mask & IN_OPEN) {
+                LOG_DEBUG("trigger open cb for %s", cfg->files[idx]);
+                lua_trigger_open(cfg->lua, cfg->files[idx]);
+            }
+            else if (ev->mask & IN_CLOSE) {
+                LOG_DEBUG("trigger close cb for %s", cfg->files[idx]);
+                lua_trigger_close(cfg->lua, cfg->files[idx]);
+            }
+            else if (ev->mask & IN_CREATE) {
+                LOG_DEBUG("trigger create cb for %s", cfg->files[idx]);
+                lua_trigger_create(cfg->lua, cfg->files[idx]);
+            }
+            else if (ev->mask & IN_ACCESS) {
+                LOG_DEBUG("trigger read cb for %s", cfg->files[idx]);
+                lua_trigger_read(cfg->lua, cfg->files[idx]);
+            }
+            else if ((ev->mask & IN_ATTRIB) || (ev->mask & IN_MODIFY)) {
+                LOG_DEBUG("trigger write cb for %s", cfg->files[idx]);
+                LOG_INFO_VA("[ ====== event %s (%u) =====]", cfg->files[idx],
+                        ev->wd);
+
+                int rv = lua_trigger_write(cfg->lua, cfg->files[idx]);
+                if (rv != LUA_OK) {
+                    need_cmd = true;
+                }
             }
             else if (ev->mask & IN_MOVE_SELF) {
                 int wd = inotify_add_watch(g_ifd, cfg->files[idx], FILTERS);
@@ -107,11 +127,24 @@ fd_dispatch(const struct config *cfg)
                 }
                 cfg->fds.data[idx] = wd;
             }
+            else if ((ev->mask & IN_DELETE) || (ev->mask & IN_DELETE_SELF)) {
+                LOG_DEBUG("trigger delete cb for %s (%d)", cfg->files[idx],
+                        ev->cookie);
+                lua_trigger_delete(cfg->lua, cfg->files[idx]);
+                if (ev->mask & IN_DELETE_SELF) {
+                    cfg->files[idx] = NULL;
+                    cfg->fds.data[idx] = -1;
+                }
+            }
+            else if (ev->mask & IN_IGNORED) {
+                LOG_DEBUG("IGNORED event for %s", cfg->files[idx]);
+            }
 
             i += EVENT_SIZE + ev->len;
         }
 
-        if (need_cmd) {
+        if (need_cmd && cfg->cmd != NULL) {
+            /* fallback to default action */
             system(cfg->cmd);
             need_cmd = false;
         }

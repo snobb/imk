@@ -1,5 +1,5 @@
-#ifndef __GEN_ARRAY_H__
-#define __GEN_ARRAY_H__
+#ifndef __GENARRAY_H__
+#define __GENARRAY_H__
 
 #include <stdlib.h>
 #include <assert.h>
@@ -55,4 +55,4 @@
         array->data = NULL;                                                  \
     }
 
-#endif /* __GEN_ARRAY_H__ */
+#endif /* __GENARRAY_H__ */

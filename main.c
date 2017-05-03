@@ -8,26 +8,43 @@
 #include <unistd.h>
 #include <string.h>
 #include <getopt.h>
+#include <pwd.h>
 
 #include "imk.h"
 #include "compat.h"
-#include "gen_array.h"
+#include "genarray.h"
+#include "lua_interp.h"
 #include "log.h"
 
-void parse_args(struct config *cfg, int argc, char **argv);
+void parse_args(int argc, char **argv);
+int get_rc_file(char *rc_file_out);
 void usage(const char *pname);
+
+struct config cfg = { 0 };
+
+const char * const RC_FILE = ".imkrc.lua";
 
 int
 main(int argc, char **argv)
 {
-    struct config cfg = { 0 };
 
     setbuf(stdout, NULL);
     setbuf(stderr, NULL);
 
-    parse_args(&cfg, argc, argv);
+    parse_args(argc, argv);
 
-    printf(":: [%s] start monitoring: cmd[%s] files[", get_time(), cfg.cmd);
+    cfg.lua = lua_init();
+    if (cfg.lua == NULL) {
+        LOG_ERR("cannot initialise LUA interpreter");
+        exit(EXIT_FAILURE);
+    }
+
+    if (get_rc_file(cfg.rc_file) != -1) {
+        lua_execute(cfg.lua, cfg.rc_file);
+    }
+
+    printf(":: [%s] start monitoring: cmd[%s] files[", get_time(),
+            (cfg.cmd != NULL ? cfg.cmd : "none"));
     const char **files = cfg.files;
     while (*files != NULL) {
         fd_register(&cfg, *files);
@@ -40,17 +57,18 @@ main(int argc, char **argv)
 
     fd_dispatch(&cfg);
     fd_close(&cfg);
+    lua_close(cfg.lua);
 
     return EXIT_SUCCESS;
 }
 
 void
-parse_args(struct config *cfg, int argc, char **argv)
+parse_args(int argc, char **argv)
 {
     int ch;
     opterr = 0;
 
-    memset(cfg, 0, sizeof(*cfg));
+    memset(&cfg, 0, sizeof(cfg));
 
     if (argc == 1) {
         usage(argv[0]);
@@ -63,26 +81,45 @@ parse_args(struct config *cfg, int argc, char **argv)
                 exit(EXIT_SUCCESS);
 
             case 'c':
-                cfg->cmd = optarg;
+                cfg.cmd = optarg;
                 break;
 
             default:
-                LOG_ERR("error: unknown argument");
+                LOG_ERR("unknown argument");
                 exit(EXIT_FAILURE);
         }
     }
 
-    cfg->files = (const char**)argv + optind;
+    cfg.files = (const char**)argv + optind;
 
-    if (cfg->cmd == NULL) {
-        LOG_ERR("error: command was not specified");
+    if (*cfg.files == NULL) {
+        LOG_ERR("no files to monitor");
         exit(EXIT_FAILURE);
     }
+}
 
-    if (*cfg->files == NULL) {
-        LOG_ERR("error: no files to monitor");
-        exit(EXIT_FAILURE);
+int
+get_rc_file(char *rc_file_out)
+{
+    char *homedir;
+
+    snprintf(rc_file_out, FILENAME_MAX, "%s", RC_FILE);
+    if (access(rc_file_out, F_OK) != -1) {
+        LOG_DEBUG("found lua config %s", rc_file_out);
+        return 0;
     }
+
+    if ((homedir = getenv("HOME")) == NULL) {
+        homedir = getpwuid(getuid())->pw_dir;
+    }
+
+    snprintf(rc_file_out, FILENAME_MAX, "%s/%s", homedir, RC_FILE);
+    if (access(rc_file_out, F_OK) != -1) {
+        LOG_DEBUG("found lua config %s", rc_file_out);
+        return 0;
+    }
+
+    return -1;
 }
 
 void
@@ -95,6 +132,8 @@ usage(const char *pname)
             "      -c <cmd>    - command to execute when event is triggered\n"
             "      <file ...>  - list of files to monitor\n\n"
             "   Please use quotes around the command if it is composed of "
-            "multiple words\n\n", pname);
+            "multiple words\n\n"
+            "   Lua event handlers are searched in .luarc.lua file in the "
+            "current directory and then in $HOME\n\n", pname);
 }
 

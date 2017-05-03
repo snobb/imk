@@ -16,9 +16,12 @@
 
 #include "../imk.h"
 #include "../log.h"
+#include "../lua_interp.h"
 
 static int g_kq = -1;
 static bool g_running = false;
+
+static int flags = NOTE_WRITE | NOTE_RENAME | NOTE_DELETE;
 
 ARRAY_FUNCS(fd, int)  // array handling functions
 
@@ -61,8 +64,9 @@ fd_dispatch(const struct config *cfg)
         }
 
         int idx;
+        int fd = (int)(intptr_t)ev.udata;
         for (idx = 0; idx < cfg->fds.size; ++idx) {
-            if (cfg->fds.data[idx] == (int)(intptr_t)ev.udata) {
+            if (cfg->fds.data[idx] == fd) {
                 break;
             }
         }
@@ -71,14 +75,32 @@ fd_dispatch(const struct config *cfg)
             break; /* not found */
         }
 
-        if ((ev.filter == EVFILT_VNODE) && (ev.fflags & NOTE_DELETE)) {
-            int fd = set_watch(cfg->files[idx]);
-            cfg->fds.data[idx] = fd;
+        if (ev.filter == EVFILT_VNODE) {
+#ifndef __APPLE__
+            if ((ev.fflags & NOTE_OPEN) || (ev.fflags & NOTE_READ)) {
+                LOG_DEBUG("trigger read cb for %s", cfg->files[idx]);
+                lua_trigger_write(cfg->lua, cfg->files[idx]);
+            }
+            else if (ev.fflags & NOTE_RENAME) {
+#else
+            if (ev.fflags & NOTE_RENAME) {
+#endif
+                LOG_DEBUG("trigger write cb for %s", cfg->files[idx]);
+                int rv = lua_trigger_write(cfg->lua, cfg->files[idx]);
+                if (rv != LUA_OK && cfg->cmd != NULL) {
+                    /* fallback to default action */
+                    LOG_INFO_VA("[====== %s (%u) =====]", cfg->files[idx], fd);
+                    system(cfg->cmd);
+                }
+            }
+            else if (ev.fflags & NOTE_DELETE) {
+                LOG_DEBUG("trigger delete cb for %s", cfg->files[idx]);
+                lua_trigger_delete(cfg->lua, cfg->files[idx]);
+            }
         }
 
-        LOG_INFO_VA("[====== %s (%u) =====]", cfg->files[idx],
-                cfg->fds.data[idx]);
-        system(cfg->cmd);
+        fd = set_watch(cfg->files[idx]);
+        cfg->fds.data[idx] = fd;
     }
 
     return 0;
