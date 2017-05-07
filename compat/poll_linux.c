@@ -19,7 +19,7 @@
 #define EVENT_SIZE      (sizeof(struct inotify_event))
 #define BUF_LEN         (1024 * (EVENT_SIZE + 16))
 
-#define FILTERS         (IN_MODIFY | IN_ONESHOT)
+#define FILTERS         (IN_MODIFY | IN_MOVE_SELF | IN_EXCL_UNLINK)
 
 static int g_ifd = -1;
 static bool g_running = false;
@@ -81,6 +81,7 @@ fd_dispatch(const struct config *cfg)
             continue;
         }
 
+        bool need_cmd = false;
         for (int i = 0; i < len;) {
             struct inotify_event *ev = (struct inotify_event *)&buf[i];
 
@@ -95,18 +96,25 @@ fd_dispatch(const struct config *cfg)
                 break;  /* not found */
             }
 
-            LOG_INFO_VA("[====== %s (%u) =====]", cfg->files[idx], ev->wd);
-
-            int wd = inotify_add_watch(g_ifd, cfg->files[idx], FILTERS);
-            if (wd == -1) {
-                LOG_PERROR("inotify_add_watch");
+            if ((ev->mask & IN_ATTRIB) || (ev->mask & IN_MODIFY)) {
+                LOG_INFO_VA("[====== %s (%u) =====]", cfg->files[idx], ev->wd);
+                need_cmd = true;
             }
-            cfg->fds.data[idx] = wd;
+            else if (ev->mask & IN_MOVE_SELF) {
+                int wd = inotify_add_watch(g_ifd, cfg->files[idx], FILTERS);
+                if (wd == -1) {
+                    LOG_PERROR("inotify_add_watch");
+                }
+                cfg->fds.data[idx] = wd;
+            }
 
             i += EVENT_SIZE + ev->len;
         }
 
-        system(cfg->cmd);
+        if (need_cmd) {
+            system(cfg->cmd);
+            need_cmd = false;
+        }
     }
 
     return 0;
