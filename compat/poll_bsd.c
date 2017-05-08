@@ -71,10 +71,13 @@ fd_dispatch(const struct config *cfg)
             break; /* not found */
         }
 
-        int fd = set_watch(cfg->files[idx]);
-        cfg->fds.data[idx] = fd;
+        if ((ev.filter == EVFILT_VNODE) && (ev.fflags & NOTE_DELETE)) {
+            int fd = set_watch(cfg->files[idx]);
+            cfg->fds.data[idx] = fd;
+        }
 
-        LOG_INFO_VA("[====== %s (%u) =====]", cfg->files[idx], fd);
+        LOG_INFO_VA("[====== %s (%u) =====]", cfg->files[idx],
+                cfg->fds.data[idx]);
         system(cfg->cmd);
     }
 
@@ -103,10 +106,10 @@ set_watch(const char *path)
 
     struct kevent ev;
     int filter = EVFILT_VNODE;
-    EV_SET(&ev, fd, filter, EV_ADD | EV_ONESHOT,
+    EV_SET(&ev, fd, filter, EV_ADD | EV_CLEAR,
             NOTE_WRITE | NOTE_DELETE, 0, (void*)(intptr_t)fd);
 
-    if (kevent(g_kq, &ev, 1, NULL , 0, NULL) == -1) {
+    if (kevent(g_kq, &ev, 1, NULL, 0, NULL) == -1) {
         LOG_PERROR("kevent");
     }
 
