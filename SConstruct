@@ -61,8 +61,9 @@ if os == "linux":
     if conf.CheckLib("liblua" + LUA_VERSION):
         env.ParseConfig('pkg-config --cflags --libs lua' + LUA_VERSION)
     conf.CheckHeader("sys/inotify.h")
-    conf.CheckHeader("sys/event.h")
-elif os in ["darwin", "openbsd", "freebsd", "netbsd"]:
+elif os in ["freebsd"]:
+    # OpenBSD and Darwin OS have old kqueue and do not support most of the
+    # events. Therefore they are considered unsupported.
     src_files.append("compat/compat_bsd.c")
     env.ParseConfig('pkg-config --cflags --libs lua-' + LUA_VERSION)
     conf.CheckLib("liblua-" + LUA_VERSION) # XXX: handle cases when LUA is not installed
@@ -70,6 +71,7 @@ elif os in ["darwin", "openbsd", "freebsd", "netbsd"]:
 
 # check for lua headers
 # XXX: handle the cases where the headers are NOT found
+conf.CheckHeader("sys/stat.h")
 conf.CheckHeader("lua.h")
 conf.CheckHeader("lualib.h")
 conf.CheckHeader("lauxlib.h")

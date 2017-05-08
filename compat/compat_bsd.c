@@ -21,7 +21,8 @@
 static int g_kq = -1;
 static bool g_running = false;
 
-static int flags = NOTE_WRITE | NOTE_RENAME | NOTE_DELETE;
+static int fflags = NOTE_OPEN | NOTE_READ | NOTE_WRITE
+                  | NOTE_RENAME | NOTE_DELETE;
 
 ARRAY_FUNCS(fd, int)  // array handling functions
 
@@ -76,15 +77,19 @@ fd_dispatch(const struct config *cfg)
         }
 
         if (ev.filter == EVFILT_VNODE) {
-#ifndef __APPLE__
-            if ((ev.fflags & NOTE_OPEN) || (ev.fflags & NOTE_READ)) {
+            if (ev.fflags & NOTE_OPEN) {
+                LOG_DEBUG("trigger open cb for %s", cfg->files[idx]);
+                lua_trigger_open(cfg->lua, cfg->files[idx]);
+            }
+            else if (ev.fflags & NOTE_CLOSE) {
+                LOG_DEBUG("trigger close cb for %s", cfg->files[idx]);
+                lua_trigger_close(cfg->lua, cfg->files[idx]);
+            }
+            else if (ev.fflags & NOTE_READ) {
                 LOG_DEBUG("trigger read cb for %s", cfg->files[idx]);
                 lua_trigger_write(cfg->lua, cfg->files[idx]);
             }
-            else if (ev.fflags & NOTE_RENAME) {
-#else
-            if (ev.fflags & NOTE_RENAME) {
-#endif
+            else if ((ev.flags & NOTE_WRITE) || (ev.fflags & NOTE_RENAME)) {
                 LOG_DEBUG("trigger write cb for %s", cfg->files[idx]);
                 int rv = lua_trigger_write(cfg->lua, cfg->files[idx]);
                 if (rv != LUA_OK && cfg->cmd != NULL) {
@@ -97,10 +102,12 @@ fd_dispatch(const struct config *cfg)
                 LOG_DEBUG("trigger delete cb for %s", cfg->files[idx]);
                 lua_trigger_delete(cfg->lua, cfg->files[idx]);
             }
-        }
 
-        fd = set_watch(cfg->files[idx]);
-        cfg->fds.data[idx] = fd;
+            if (ev.fflags & NOTE_DELETE) {
+                fd = set_watch(cfg->files[idx]);
+                cfg->fds.data[idx] = fd;
+            }
+        }
     }
 
     return 0;

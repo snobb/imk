@@ -21,13 +21,15 @@ ifeq ($(OS), Linux)
     CFLAGS      += $(shell pkg-config --cflags lua$(LUA_VERSION))
     LDFLAGS     += $(shell pkg-config --libs lua$(LUA_VERSION))
     SRC         += compat/compat_linux.c
-else ifeq ($(OS), $(filter $(OS), NetBSD OpenBSD FreeBSD Darwin))
+else ifeq ($(OS), $(filter $(OS), FreeBSD))
     GRP         := wheel
     CFLAGS      += $(shell pkg-config --cflags lua-$(LUA_VERSION))
     LDFLAGS     += $(shell pkg-config --libs lua-$(LUA_VERSION))
     SRC         += compat/compat_bsd.c
 else
-    $(error Unrecognized OS)
+    # OpenBSD and Darwin OS have old kqueue and do not support most of the
+    # events. Therefore they are considered unsupported.
+    $(error Unrecognized or unsupported OS)
 endif
 
 OBJ             := $(SRC:.c=.o)
