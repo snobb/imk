@@ -7,13 +7,15 @@ Usage:
 ------
 ```bash
 $ ./imk -h
-usage: ./imk [-h] -c <command> <file ...>
+usage: imk [-h] -c <command> <file ...>
 
    The options are as follows:
-      -c <command> - command to execute when event triggered
-      <file ...>   - list of files to monitor
+      -h          - display this text and exit
+      -c <cmd>    - command to execute when event is triggered
+      -t <sec>    - number of seconds to skip after the last executed command (default 0)
+      <file ...>  - list of files to monitor
 
-   Please use quotes around command if it is composed of multiple words
+   Please use quotes around the command if it is composed of multiple words
 ```
 
 To monitor all .c files and run make run the following:

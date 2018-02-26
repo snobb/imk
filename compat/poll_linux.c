@@ -10,6 +10,7 @@
 #include <signal.h>
 #include <fcntl.h>
 #include <errno.h>
+#include <time.h>
 #include <sys/stat.h>
 #include <sys/inotify.h>
 
@@ -66,6 +67,7 @@ fd_dispatch(const struct config *cfg)
 {
     int rv, len;
     char buf[BUF_LEN];
+    time_t next = { 0 };
 
     g_running = true;
     while (g_running) {
@@ -106,7 +108,10 @@ fd_dispatch(const struct config *cfg)
             i += EVENT_SIZE + ev->len;
         }
 
-        system(cfg->cmd);
+        if (time(NULL) > next) {
+            system(cfg->cmd);
+            next = time(NULL) + cfg->threshold;
+        }
     }
 
     return 0;

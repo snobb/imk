@@ -11,6 +11,7 @@
 #include <signal.h>
 #include <errno.h>
 #include <stdint.h>
+#include <time.h>
 #include <sys/types.h>
 #include <sys/event.h>
 
@@ -48,6 +49,7 @@ int
 fd_dispatch(const struct config *cfg)
 {
     struct kevent ev;
+    time_t next = { 0 };
 
     g_running = true;
     while (g_running) {
@@ -78,7 +80,11 @@ fd_dispatch(const struct config *cfg)
 
         LOG_INFO_VA("[====== %s (%u) =====]", cfg->files[idx],
                 cfg->fds.data[idx]);
-        system(cfg->cmd);
+
+        if (time(NULL) > next) {
+            system(cfg->cmd);
+            next = time(NULL) + cfg->threshold;
+        }
     }
 
     return 0;

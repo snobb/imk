@@ -4,6 +4,7 @@
 #include "gen_array.h"
 
 struct config {
+    int  threshold;
     const char *cmd;
     const char **files;
     ARRAY_STRUCT(fd, int) fds;
