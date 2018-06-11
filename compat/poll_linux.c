@@ -18,7 +18,7 @@
 #include "../log.h"
 
 #define EVENT_SIZE      (sizeof(struct inotify_event))
-#define BUF_LEN         (1024 * (EVENT_SIZE + 16))
+#define BUF_LEN         (8 * (EVENT_SIZE + 16))
 
 #define FILTERS         (IN_MODIFY | IN_ONESHOT)
 
@@ -27,12 +27,13 @@ static bool g_running = false;
 
 ARRAY_FUNCS(fd, int)  // array handling functions
 
+int set_watch(const char *path);
 static void sig_handler(int);
 
 int
 fd_register(struct config *cfg, const char *path)
 {
-    int rv;
+    int rv = 0;
 
     if (g_ifd == -1) {
         signal(SIGINT, sig_handler);
@@ -51,12 +52,7 @@ fd_register(struct config *cfg, const char *path)
         return -1;
     }
 
-    rv = inotify_add_watch(g_ifd, path, FILTERS);
-
-    if (rv == -1) {
-        LOG_PERROR("inotify_add_watch");
-        exit(1);
-    }
+    rv = set_watch(path);
 
     array_fd_append(&cfg->fds, rv);
     return rv;
@@ -98,12 +94,7 @@ fd_dispatch(const struct config *cfg)
             }
 
             LOG_INFO_VA("[====== %s (%u) =====]", cfg->files[idx], ev->wd);
-
-            int wd = inotify_add_watch(g_ifd, cfg->files[idx], FILTERS);
-            if (wd == -1) {
-                LOG_PERROR("inotify_add_watch");
-            }
-            cfg->fds.data[idx] = wd;
+            cfg->fds.data[idx] = set_watch(cfg->files[idx]);
 
             i += EVENT_SIZE + ev->len;
         }
@@ -129,6 +120,19 @@ fd_close(struct config *cfg)
     }
 
     array_fd_free(&cfg->fds);
+}
+
+int
+set_watch(const char *path)
+{
+    int rv = inotify_add_watch(g_ifd, path, FILTERS);
+
+    if (rv == -1) {
+        LOG_PERROR("inotify_add_watch");
+        exit(1);
+    }
+
+    return rv;
 }
 
 void
