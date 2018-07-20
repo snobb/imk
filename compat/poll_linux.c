@@ -20,7 +20,11 @@
 #define EVENT_SIZE      (sizeof(struct inotify_event))
 #define BUF_LEN         (8 * (EVENT_SIZE + 16))
 
+#ifdef VBOX
+#define FILTERS         (IN_MODIFY | IN_MOVE_SELF | IN_ONESHOT)
+#else
 #define FILTERS         (IN_MODIFY | IN_ONESHOT)
+#endif
 
 static int g_ifd = -1;
 static bool g_running = false;

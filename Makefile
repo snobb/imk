@@ -26,6 +26,11 @@ LFLAGS          := $(LIBS)
     LFLAGS += -g
 .endif
 
+ifeq ($(VBOX), yes)
+    CFLAGS    += -DVBOX
+endif
+
+
 all: debug
 debug: build
 release: clean build

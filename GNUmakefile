@@ -23,11 +23,15 @@ OBJ             := $(SRC:.c=.o)
 INCLUDES        :=
 LIBS            :=
 
-CFLAGS          := -Wall $(INCLUDES)
-LFLAGS          := $(LIBS)
+CFLAGS          += -Wall $(INCLUDES)
+LFLAGS          += $(LIBS)
 
 ifeq ($(CC), $(filter $(CC), clang gcc cc musl-gcc))
     CFLAGS := -std=c99 -pedantic
+endif
+
+ifeq ($(VBOX), yes)
+    CFLAGS    += -DVBOX
 endif
 
 all: debug
