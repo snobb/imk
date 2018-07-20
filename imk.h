@@ -11,4 +11,6 @@ struct config {
     ARRAY_STRUCT(fd, int) fds;
 };
 
+void run_command(const char *cmd);
+
 #endif /* __IMK_H__ */

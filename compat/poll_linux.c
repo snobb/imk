@@ -100,7 +100,7 @@ fd_dispatch(const struct config *cfg)
         }
 
         if (time(NULL) > next) {
-            system(cfg->cmd);
+            run_command(cfg->cmd);
             next = time(NULL) + cfg->threshold;
         }
     }
