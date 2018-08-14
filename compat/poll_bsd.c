@@ -81,8 +81,13 @@ fd_dispatch(const struct config *cfg)
         LOG_INFO_VA("[====== %s (%u) =====]", cfg->files[idx],
                 cfg->fds.data[idx]);
 
-        if (time(NULL) > next) {
-            run_command(cfg->cmd);
+        if (time(NULL) > next || cfg->onerun) {
+            int rv = run_command(cfg->cmd);
+
+            if (cfg->onerun) {
+                exit(rv);
+            }
+
             next = time(NULL) + cfg->threshold;
         }
     }

@@ -7,7 +7,7 @@
 #include <errno.h>
 #include "log.h"
 
-void
+int
 run_command(const char *cmd)
 {
     int rv = system(cmd);
@@ -17,4 +17,6 @@ run_command(const char *cmd)
         LOG_INFO_VA("[====== %s (exit code %d) =====]",
                 rv == 0 ? "ok" : "fail", rv);
     }
+
+    return rv;
 }

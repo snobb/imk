@@ -103,8 +103,13 @@ fd_dispatch(const struct config *cfg)
             i += EVENT_SIZE + ev->len;
         }
 
-        if (time(NULL) > next) {
-            run_command(cfg->cmd);
+        if (time(NULL) > next || cfg->onerun) {
+            int rv = run_command(cfg->cmd);
+
+            if (cfg->onerun) {
+                exit(rv);
+            }
+
             next = time(NULL) + cfg->threshold;
         }
     }
