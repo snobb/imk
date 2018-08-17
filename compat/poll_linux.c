@@ -23,7 +23,6 @@
 #define FILTERS         (IN_DELETE_SELF | IN_MOVE_SELF | IN_MODIFY | IN_ONESHOT)
 
 static int g_ifd = -1;
-static bool g_running = false;
 
 ARRAY_FUNCS(fd, int)  // array handling functions
 
@@ -65,8 +64,7 @@ fd_dispatch(const struct config *cfg)
     char buf[BUF_LEN];
     time_t next = { 0 };
 
-    g_running = true;
-    while (g_running) {
+    for (;;) {
         if ((len = read(g_ifd, buf, BUF_LEN)) == -1) {
             if (errno == EAGAIN || errno == EINTR) {
                 continue;
@@ -151,7 +149,7 @@ set_watch(const char *path)
 void
 sig_handler(int sig)
 {
-    g_running = false;
     LOG_ERR("interrupted");
+    exit(0);
 }
 

@@ -19,7 +19,6 @@
 #include "../log.h"
 
 static int g_kq = -1;
-static bool g_running = false;
 
 ARRAY_FUNCS(fd, int)  // array handling functions
 
@@ -51,8 +50,7 @@ fd_dispatch(const struct config *cfg)
     struct kevent ev;
     time_t next = { 0 };
 
-    g_running = true;
-    while (g_running) {
+    for (;;) {
         memset(&ev, 0, sizeof(ev));
 
         if (kevent(g_kq, NULL, 0, &ev, 1, NULL) == -1) {
@@ -137,7 +135,7 @@ set_watch(const char *path)
 void
 sig_handler(int sig)
 {
-    g_running = false;
     LOG_ERR("interrupted");
+    exit(0);
 }
 
