@@ -20,11 +20,7 @@
 #define EVENT_SIZE      (sizeof(struct inotify_event))
 #define BUF_LEN         (8 * (EVENT_SIZE + 16))
 
-#ifdef VBOX
-#define FILTERS         (IN_MODIFY | IN_MOVE_SELF | IN_ONESHOT)
-#else
-#define FILTERS         (IN_MODIFY | IN_ONESHOT)
-#endif
+#define FILTERS         (IN_DELETE_SELF | IN_MOVE_SELF | IN_MODIFY | IN_ONESHOT)
 
 static int g_ifd = -1;
 static bool g_running = false;
@@ -65,7 +61,7 @@ fd_register(struct config *cfg, const char *path)
 int
 fd_dispatch(const struct config *cfg)
 {
-    int rv, len;
+    int len;
     char buf[BUF_LEN];
     time_t next = { 0 };
 
@@ -85,6 +81,14 @@ fd_dispatch(const struct config *cfg)
 
         for (int i = 0; i < len;) {
             struct inotify_event *ev = (struct inotify_event *)&buf[i];
+
+            /* sometimes IN_DELETE_SELF or IN_MOVE_SELF mean the file is being
+             * processed by some program (eg. vim or gofmt), so if imk tries
+             * to reattach to the file immediately it may not exist. So sleep
+             * for a while before try to reattach to the file.*/
+            if ((ev->mask & IN_DELETE_SELF) || (ev->mask & IN_MOVE_SELF)) {
+                usleep(cfg->sleepDelete);
+            }
 
             int idx;
             for (idx = 0; idx < cfg->fds.size; ++idx) {

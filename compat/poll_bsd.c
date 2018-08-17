@@ -73,13 +73,19 @@ fd_dispatch(const struct config *cfg)
             break; /* not found */
         }
 
-        if ((ev.filter == EVFILT_VNODE) && (ev.fflags & NOTE_DELETE)) {
-            int fd = set_watch(cfg->files[idx]);
-            cfg->fds.data[idx] = fd;
+        /* sometimes IN_DELETE_SELF or IN_MOVE_SELF mean the file is being
+         * processed by some program (eg. vim or gofmt), so if imk tries
+         * to reattach to the file immediately it may not exist. So sleep
+         * for a while before try to reattach to the file.*/
+        if ((ev.filter == EVFILT_VNODE) &&
+                ((ev.fflags & NOTE_DELETE) || (ev.fflags & NOTE_RENAME))) {
+            usleep(cfg->sleepDelete);
         }
 
         LOG_INFO_VA("[====== %s (%u) =====]", cfg->files[idx],
                 cfg->fds.data[idx]);
+
+        cfg->fds.data[idx] = set_watch(cfg->files[idx]);
 
         if (time(NULL) > next || cfg->onerun) {
             int rv = run_command(cfg->cmd);
@@ -117,8 +123,9 @@ set_watch(const char *path)
 
     struct kevent ev;
     int filter = EVFILT_VNODE;
-    EV_SET(&ev, fd, filter, EV_ADD | EV_CLEAR,
-            NOTE_WRITE | NOTE_DELETE, 0, (void*)(intptr_t)fd);
+
+    EV_SET(&ev, fd, filter, EV_ADD | EV_CLEAR, NOTE_WRITE |
+            NOTE_DELETE | NOTE_RENAME, 0, (void*)(intptr_t)fd);
 
     if (kevent(g_kq, &ev, 1, NULL, 0, NULL) == -1) {
         LOG_PERROR("kevent");

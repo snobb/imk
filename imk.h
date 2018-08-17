@@ -6,6 +6,7 @@
 struct config {
     int  threshold;
     int  onerun;
+    unsigned sleepDelete;
     const char *cmd;
     const char **files;
     /* the fds array MUST have the same order as files */
