@@ -85,7 +85,7 @@ fd_dispatch(const struct config *cfg)
              * to reattach to the file immediately it may not exist. So sleep
              * for a while before try to reattach to the file.*/
             if ((ev->mask & IN_DELETE_SELF) || (ev->mask & IN_MOVE_SELF)) {
-                usleep(cfg->sleepDelete);
+                usleep(cfg->sleepDelete * 1000);
             }
 
             int idx;

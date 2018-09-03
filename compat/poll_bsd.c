@@ -77,7 +77,7 @@ fd_dispatch(const struct config *cfg)
          * for a while before try to reattach to the file.*/
         if ((ev.filter == EVFILT_VNODE) &&
                 ((ev.fflags & NOTE_DELETE) || (ev.fflags & NOTE_RENAME))) {
-            usleep(cfg->sleepDelete);
+            usleep(cfg->sleepDelete * 1000);
         }
 
         LOG_INFO_VA("[====== %s (%u) =====]", cfg->files[idx],
