@@ -24,8 +24,6 @@
 
 static int g_ifd = -1;
 
-ARRAY_FUNCS(fd, int)  // array handling functions
-
 int set_watch(const char *path);
 static void sig_handler(int);
 
@@ -43,7 +41,7 @@ fd_register(struct config *cfg, const char *path)
             exit(1);
         }
 
-        array_fd_init(&cfg->fds);
+        cfg->fds = malloc(sizeof(*cfg->fds) * cfg->nfiles);
     }
 
     struct stat st;
@@ -53,7 +51,7 @@ fd_register(struct config *cfg, const char *path)
 
     rv = set_watch(path);
 
-    array_fd_append(&cfg->fds, rv);
+    cfg->fds[cfg->fds_size++] = rv;
     return rv;
 }
 
@@ -85,22 +83,23 @@ fd_dispatch(const struct config *cfg)
              * to reattach to the file immediately it may not exist. So sleep
              * for a while before try to reattach to the file.*/
             if ((ev->mask & IN_DELETE_SELF) || (ev->mask & IN_MOVE_SELF)) {
-                usleep(cfg->sleepDelete * 1000);
+                usleep(cfg->sleep_del * 1000);
             }
 
             int idx;
-            for (idx = 0; idx < cfg->fds.size; ++idx) {
-                if (cfg->fds.data[idx] == ev->wd) {
+            for (idx = 0; idx < cfg->fds_size; ++idx) {
+                if (cfg->fds[idx] == ev->wd) {
                     break;
                 }
             }
 
-            if (idx == cfg->fds.size) {
+            if (idx == cfg->fds_size) {
+                LOG_ERR("File handle is not found. Exiting...");
                 break;  /* not found */
             }
 
             LOG_INFO_VA("[====== %s (%u) =====]", cfg->files[idx], ev->wd);
-            cfg->fds.data[idx] = set_watch(cfg->files[idx]);
+            cfg->fds[idx] = set_watch(cfg->files[idx]);
 
             i += EVENT_SIZE + ev->len;
         }
@@ -126,11 +125,11 @@ fd_close(struct config *cfg)
         close(g_ifd);
     }
 
-    for (int i = 0; i < cfg->fds.size; ++i) {
-        close(cfg->fds.data[i]);
+    for (int i = 0; i < cfg->fds_size; ++i) {
+        close(cfg->fds[i]);
     }
 
-    array_fd_free(&cfg->fds);
+    free(cfg->fds);
 }
 
 int
@@ -150,6 +149,6 @@ void
 sig_handler(int sig)
 {
     LOG_ERR("interrupted");
-    exit(0);
+    exit(1);
 }
 

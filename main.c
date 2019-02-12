@@ -11,7 +11,6 @@
 
 #include "imk.h"
 #include "compat.h"
-#include "gen_array.h"
 #include "log.h"
 
 void parse_args(struct config *cfg, int argc, char **argv);
@@ -29,14 +28,16 @@ main(int argc, char **argv)
 
     printf(":: [%s] start monitoring: cmd[%s] threshold[%d] files[",
             get_time(), cfg.cmd, cfg.threshold);
-    const char **files = cfg.files;
-    while (*files != NULL) {
-        fd_register(&cfg, *files);
-        printf("%s", *files++);
-        if (*files != NULL) {
+
+    for (int i = 0; i < cfg.nfiles; ++i) {
+        fd_register(&cfg, cfg.files[i]);
+        printf("%s", cfg.files[i]);
+
+        if (i < cfg.nfiles-1) {
             printf(" ");
         }
     }
+
     printf("]\n");
 
     fd_dispatch(&cfg);
@@ -57,7 +58,7 @@ parse_args(struct config *cfg, int argc, char **argv)
         usage(argv[0]);
     }
 
-    cfg->sleepDelete = 300;
+    cfg->sleep_del = 300;
 
     while ((ch = getopt(argc, argv, "hc:t:s:o")) != -1) {
         switch (ch) {
@@ -78,7 +79,7 @@ parse_args(struct config *cfg, int argc, char **argv)
                 break;
 
             case 's':
-                cfg->sleepDelete = atoi(optarg);
+                cfg->sleep_del = atoi(optarg);
                 break;
 
             default:
@@ -88,6 +89,7 @@ parse_args(struct config *cfg, int argc, char **argv)
     }
 
     cfg->files = (const char**)argv + optind;
+    cfg->nfiles = argc - optind;
 
     if (cfg->cmd == NULL) {
         LOG_ERR("error: command was not specified");

@@ -20,8 +20,6 @@
 
 static int g_kq = -1;
 
-ARRAY_FUNCS(fd, int)  // array handling functions
-
 static int set_watch(const char *path);
 static void sig_handler(int);
 
@@ -36,11 +34,12 @@ fd_register(struct config *cfg, const char *path)
             LOG_PERROR("kqueue");
         }
 
-        array_fd_init(&cfg->fds);
+        cfg->fds = malloc(sizeof(*cfg->fds) * cfg->nfiles);
     }
 
     int rv = set_watch(path);
-    array_fd_append(&cfg->fds, rv);
+    cfg->fds[cfg->fds_size++] = rv;
+
     return rv;
 }
 
@@ -61,13 +60,14 @@ fd_dispatch(const struct config *cfg)
         }
 
         int idx;
-        for (idx = 0; idx < cfg->fds.size; ++idx) {
-            if (cfg->fds.data[idx] == (int)(intptr_t)ev.udata) {
+        for (idx = 0; idx < cfg->fds_size; ++idx) {
+            if (cfg->fds[idx] == (int)(intptr_t)ev.udata) {
                 break;
             }
         }
 
-        if (idx == cfg->fds.size) {
+        if (idx == cfg->fds_size) {
+            LOG_ERR("File handle is not found. Exiting...");
             break; /* not found */
         }
 
@@ -77,13 +77,13 @@ fd_dispatch(const struct config *cfg)
          * for a while before try to reattach to the file.*/
         if ((ev.filter == EVFILT_VNODE) &&
                 ((ev.fflags & NOTE_DELETE) || (ev.fflags & NOTE_RENAME))) {
-            usleep(cfg->sleepDelete * 1000);
+            usleep(cfg->sleep_del * 1000);
         }
 
         LOG_INFO_VA("[====== %s (%u) =====]", cfg->files[idx],
-                cfg->fds.data[idx]);
+                cfg->fds[idx]);
 
-        cfg->fds.data[idx] = set_watch(cfg->files[idx]);
+        cfg->fds[idx] = set_watch(cfg->files[idx]);
 
         if (time(NULL) > next || cfg->onerun) {
             int rv = run_command(cfg->cmd);
@@ -104,11 +104,11 @@ fd_close(struct config *cfg)
 {
     close(g_kq);
 
-    for (int i = 0; i < cfg->fds.size; ++i) {
-        close(cfg->fds.data[i]);
+    for (int i = 0; i < cfg->fds_size; ++i) {
+        close(cfg->fds[i]);
     }
 
-    array_fd_free(&cfg->fds);
+    free(cfg->fds);
 }
 
 int
@@ -122,7 +122,7 @@ set_watch(const char *path)
     struct kevent ev;
     int filter = EVFILT_VNODE;
 
-    EV_SET(&ev, fd, filter, EV_ADD | EV_CLEAR, NOTE_WRITE |
+    EV_SET(&ev, fd, filter, EV_ADD | EV_ONESHOT, NOTE_WRITE |
             NOTE_DELETE | NOTE_RENAME, 0, (void*)(intptr_t)fd);
 
     if (kevent(g_kq, &ev, 1, NULL, 0, NULL) == -1) {
@@ -136,6 +136,6 @@ void
 sig_handler(int sig)
 {
     LOG_ERR("interrupted");
-    exit(0);
+    exit(1);
 }
 
