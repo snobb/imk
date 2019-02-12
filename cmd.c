@@ -1,5 +1,5 @@
 /*
- *  imk.c
+ *  cmd.c
  *  author: Aleksei Kozadaev (2018)
  */
 
@@ -8,7 +8,7 @@
 #include "log.h"
 
 int
-run_command(const char *cmd)
+cmd_run(const char *cmd)
 {
     int rv = system(cmd);
     if (rv < 0) {

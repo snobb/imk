@@ -5,7 +5,6 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdbool.h>
 #include <unistd.h>
 #include <signal.h>
 #include <fcntl.h>
@@ -14,7 +13,8 @@
 #include <sys/stat.h>
 #include <sys/inotify.h>
 
-#include "../imk.h"
+#include "../cfg.h"
+#include "../cmd.h"
 #include "../log.h"
 
 #define EVENT_SIZE      (sizeof(struct inotify_event))
@@ -30,8 +30,6 @@ static void sig_handler(int);
 int
 fd_register(struct config *cfg, const char *path)
 {
-    int rv = 0;
-
     if (g_ifd == -1) {
         signal(SIGINT, sig_handler);
         signal(SIGTERM, sig_handler);
@@ -40,18 +38,17 @@ fd_register(struct config *cfg, const char *path)
             LOG_PERROR("inotify_init");
             exit(1);
         }
-
-        cfg->fds = malloc(sizeof(*cfg->fds) * cfg->nfiles);
     }
 
+    int rv = 0;
     struct stat st;
     if ((rv = stat(path, &st)) != 0) {
         return -1;
     }
 
     rv = set_watch(path);
+    cfg_add_fd(cfg, rv);
 
-    cfg->fds[cfg->fds_size++] = rv;
     return rv;
 }
 
@@ -67,6 +64,7 @@ fd_dispatch(const struct config *cfg)
             if (errno == EAGAIN || errno == EINTR) {
                 continue;
             }
+
             LOG_PERROR("read");
             exit(1);
         }
@@ -87,15 +85,14 @@ fd_dispatch(const struct config *cfg)
             }
 
             int idx;
-            for (idx = 0; idx < cfg->fds_size; ++idx) {
+            for (idx = 0; idx < cfg->nfds; ++idx) {
                 if (cfg->fds[idx] == ev->wd) {
                     break;
                 }
             }
 
-            if (idx == cfg->fds_size) {
-                LOG_ERR("File handle is not found. Exiting...");
-                break;  /* not found */
+            if (idx == cfg->nfds) {
+                break;
             }
 
             LOG_INFO_VA("[====== %s (%u) =====]", cfg->files[idx], ev->wd);
@@ -105,9 +102,10 @@ fd_dispatch(const struct config *cfg)
         }
 
         if (time(NULL) > next || cfg->onerun) {
-            int rv = run_command(cfg->cmd);
+            int rv = cmd_run(cfg->cmd);
 
             if (cfg->onerun) {
+                cfg_clean(cfg);
                 exit(rv);
             }
 
@@ -125,24 +123,24 @@ fd_close(struct config *cfg)
         close(g_ifd);
     }
 
-    for (int i = 0; i < cfg->fds_size; ++i) {
+    for (int i = 0; i < cfg->nfds; ++i) {
         close(cfg->fds[i]);
     }
 
-    free(cfg->fds);
+    cfg_clean(cfg);
 }
 
 int
 set_watch(const char *path)
 {
-    int rv = inotify_add_watch(g_ifd, path, FILTERS);
+    int wd = inotify_add_watch(g_ifd, path, FILTERS);
 
-    if (rv == -1) {
+    if (wd == -1) {
         LOG_PERROR("inotify_add_watch");
         exit(1);
     }
 
-    return rv;
+    return wd;
 }
 
 void

@@ -5,17 +5,16 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdbool.h>
 #include <unistd.h>
-#include <fcntl.h>
 #include <signal.h>
+#include <fcntl.h>
 #include <errno.h>
-#include <stdint.h>
 #include <time.h>
 #include <sys/types.h>
 #include <sys/event.h>
 
-#include "../imk.h"
+#include "../cfg.h"
+#include "../cmd.h"
 #include "../log.h"
 
 static int g_kq = -1;
@@ -32,15 +31,14 @@ fd_register(struct config *cfg, const char *path)
 
         if ((g_kq = kqueue()) == -1) {
             LOG_PERROR("kqueue");
+            exit(1);
         }
-
-        cfg->fds = malloc(sizeof(*cfg->fds) * cfg->nfiles);
     }
 
-    int rv = set_watch(path);
-    cfg->fds[cfg->fds_size++] = rv;
+    int fd = set_watch(path);
+    cfg_add_fd(cfg, fd);
 
-    return rv;
+    return fd;
 }
 
 int
@@ -56,22 +54,12 @@ fd_dispatch(const struct config *cfg)
             if (errno == EINTR) {
                 continue;
             }
+
             LOG_PERROR("kevent");
+            exit(1);
         }
 
-        int idx;
-        for (idx = 0; idx < cfg->fds_size; ++idx) {
-            if (cfg->fds[idx] == (int)(intptr_t)ev.udata) {
-                break;
-            }
-        }
-
-        if (idx == cfg->fds_size) {
-            LOG_ERR("File handle is not found. Exiting...");
-            break; /* not found */
-        }
-
-        /* sometimes IN_DELETE_SELF or IN_MOVE_SELF mean the file is being
+        /* sometimes NOTE_DELETE or NOTE_RENAME mean the file is being
          * processed by some program (eg. vim or gofmt), so if imk tries
          * to reattach to the file immediately it may not exist. So sleep
          * for a while before try to reattach to the file.*/
@@ -80,15 +68,26 @@ fd_dispatch(const struct config *cfg)
             usleep(cfg->sleep_del * 1000);
         }
 
-        LOG_INFO_VA("[====== %s (%u) =====]", cfg->files[idx],
-                cfg->fds[idx]);
+        int idx;
+        for (idx = 0; idx < cfg->nfds; ++idx) {
+            if (cfg->fds[idx] == (int)(intptr_t)ev.udata) {
+                break;
+            }
+        }
+
+        if (idx == cfg->nfds) {
+            break; /* not found */
+        }
+
+        LOG_INFO_VA("[====== %s (%u) =====]", cfg->files[idx], cfg->fds[idx]);
 
         cfg->fds[idx] = set_watch(cfg->files[idx]);
 
         if (time(NULL) > next || cfg->onerun) {
-            int rv = run_command(cfg->cmd);
+            int rv = cmd_run(cfg->cmd);
 
             if (cfg->onerun) {
+                cfg_clean(cfg);
                 exit(rv);
             }
 
@@ -102,13 +101,15 @@ fd_dispatch(const struct config *cfg)
 void
 fd_close(struct config *cfg)
 {
-    close(g_kq);
+    if (g_kq != -1) {
+        close(g_kq);
+    }
 
-    for (int i = 0; i < cfg->fds_size; ++i) {
+    for (int i = 0; i < cfg->nfds; ++i) {
         close(cfg->fds[i]);
     }
 
-    free(cfg->fds);
+    cfg_clean(cfg);
 }
 
 int
@@ -127,6 +128,7 @@ set_watch(const char *path)
 
     if (kevent(g_kq, &ev, 1, NULL, 0, NULL) == -1) {
         LOG_PERROR("kevent");
+        exit(1);
     }
 
     return fd;
