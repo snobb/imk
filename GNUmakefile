@@ -7,6 +7,7 @@ OS              := $(shell uname -s)
 ifeq ($(OS), Linux)
     GRP    := root
     SRC    += compat/poll_linux.c
+    CFLAGS += -D_DEFAULT_SOURCE
 else ifeq ($(OS), $(filter $(OS), NetBSD OpenBSD FreeBSD Darwin))
     GRP    := wheel
     SRC    += compat/poll_bsd.c
@@ -23,11 +24,21 @@ OBJ             := $(SRC:.c=.o)
 INCLUDES        :=
 LIBS            :=
 
-CFLAGS          += -D _DEFAULT_SOURCE -Werror -Wall $(INCLUDES)
+CFLAGS          += -Werror -Wall $(INCLUDES)
 LFLAGS          += $(LIBS)
 
 ifeq ($(CC), $(filter $(CC), clang gcc cc musl-gcc))
     CFLAGS += -std=c99 -pedantic
+endif
+
+# version info from git
+REVCNT         := $(shell git rev-list --count master 2>/dev/null)
+ifeq ($(REVCNT),)
+	VERSION     := devel
+else
+	REVHASH     := $(shell git rev-parse --short HEAD 2>/dev/null)
+	ISCLEAN     := $(shell git diff-index --quiet HEAD || echo " [devel]" 2>/dev/null)
+	VERSION     := "$(REVCNT).$(REVHASH)$(ISCLEAN)"
 endif
 
 all: debug
@@ -51,6 +62,7 @@ $(BUILD_HOST):
 	@echo "#define BUILD_OS \"`uname`\""          >> $(BUILD_HOST)
 	@echo "#define BUILD_PLATFORM \"`uname -m`\"" >> $(BUILD_HOST)
 	@echo "#define BUILD_KERNEL \"`uname -r`\""   >> $(BUILD_HOST)
+	@echo "#define VERSION \"$(VERSION)\""        >> $(BUILD_HOST)
 
 $(TARGET): $(BUILD_HOST) $(OBJ)
 	$(CC) $(LFLAGS) -o $@ $(OBJ)

@@ -3,6 +3,8 @@
  *  author: Aleksei Kozadaev (2019)
  */
 
+#include "build_host.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <getopt.h>
@@ -32,10 +34,14 @@ cfg_parse_args(struct config *cfg, int argc, char **argv)
 
     cfg->sleep_del = 300;
 
-    while ((ch = getopt(argc, argv, "hc:t:s:o")) != -1) {
+    while ((ch = getopt(argc, argv, "hvc:t:s:o")) != -1) {
         switch (ch) {
             case 'h':
                 usage(argv[0]);
+                exit(EXIT_SUCCESS);
+
+            case 'v':
+                printf("%s\n", VERSION);
                 exit(EXIT_SUCCESS);
 
             case 'c':
@@ -88,14 +94,15 @@ void
 usage(const char *pname)
 {
     fprintf(stdout,
-            "usage: %s [-h] -c <command> [-t <sec>] [-o] <file ...>\n\n"
+            "usage: %s [-h] [-v] -c <command> [-t <sec>] [-o] <file ...>\n\n"
             "   The options are as follows:\n"
             "      -h          - display this text and exit\n"
+            "      -v          - display the version\n"
             "      -c <cmd>    - command to execute when event is triggered\n"
             "      -o          - exit after first iteration\n"
             "      -t <sec>    - number of seconds to skip after the last "
             "executed command (default 0)\n"
-            "      -s <sec>    - number of milliseconds to sleep before "
+            "      -s <ms>     - number of milliseconds to sleep before "
             "reattaching in case of DELETE event (default 300)\n"
             "      <file ...>  - list of files to monitor\n\n"
             "   Please use quotes around the command if it is composed of "

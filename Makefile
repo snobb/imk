@@ -26,6 +26,16 @@ LFLAGS          := $(LIBS)
     LFLAGS += -g
 .endif
 
+# version info from git
+REVCNT         != (git rev-list --count master 2>/dev/null)
+.if !defined(REVCNT)
+    VERSION := devel
+.else
+    REVHASH != (git rev-parse --short HEAD 2>/dev/null)
+    ISCLEAN != (git diff-index --quiet HEAD || echo " [devel]" 2>/dev/null)
+    VERSION := "$(REVCNT).$(REVHASH)$(ISCLEAN)"
+.endif
+
 all: debug
 debug: build
 release: clean build
@@ -40,6 +50,7 @@ $(BUILD_HOST):
 	@echo "#define BUILD_OS \"`uname`\""          >> $(BUILD_HOST)
 	@echo "#define BUILD_PLATFORM \"`uname -m`\"" >> $(BUILD_HOST)
 	@echo "#define BUILD_KERNEL \"`uname -r`\""   >> $(BUILD_HOST)
+	@echo "#define VERSION \"$(VERSION)\""        >> $(BUILD_HOST)
 
 $(TARGET): $(BUILD_HOST) $(OBJ)
 	$(CC) $(LFLAGS) -o $@ $(OBJ)

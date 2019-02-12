@@ -7,14 +7,15 @@ Usage:
 ------
 ```bash
 $ ./imk -h
-usage: imk [-h] -c <command> [-t <sec>] [-o] <file ...>
+usage: ./imk [-h] [-v] -c <command> [-t <sec>] [-o] <file ...>
 
    The options are as follows:
       -h          - display this text and exit
+      -v          - display the version
       -c <cmd>    - command to execute when event is triggered
       -o          - exit after first iteration
       -t <sec>    - number of seconds to skip after the last executed command (default 0)
-      -s <sec>    - number of milliseconds to sleep before reattaching in case of DELETE event (default 300)
+      -s <ms>     - number of milliseconds to sleep before reattaching in case of DELETE event (default 300)
       <file ...>  - list of files to monitor
 
    Please use quotes around the command if it is composed of multiple words
