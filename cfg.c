@@ -79,7 +79,10 @@ cfg_parse_args(struct config *cfg, int argc, char **argv)
         exit(EXIT_FAILURE);
     }
 
-    cfg->fds = malloc(sizeof(*cfg->fds) * cfg->nfiles);
+    if ((cfg->fds = malloc(sizeof(*cfg->fds) * cfg->nfiles)) == NULL) {
+        LOG_PERROR("malloc");
+        exit(EXIT_FAILURE);
+    }
 }
 
 void

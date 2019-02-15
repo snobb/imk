@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <errno.h>
 
 #define LOG_PERROR(m)           \
         fprintf(stderr, ":: [%s] "m": %s\n", get_time(), strerror(errno));
