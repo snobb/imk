@@ -86,7 +86,7 @@ cfg_parse_args(struct config *cfg, int argc, char **argv)
 }
 
 void
-cfg_clean(const struct config *cfg)
+cfg_free(const struct config *cfg)
 {
     if (cfg->fds) {
         free(cfg->fds);

@@ -87,7 +87,7 @@ fd_dispatch(const struct config *cfg)
             int rv = cmd_run(cfg->cmd);
 
             if (cfg->onerun) {
-                cfg_clean(cfg);
+                cfg_free(cfg);
                 exit(rv);
             }
 
@@ -108,8 +108,6 @@ fd_close(struct config *cfg)
     for (int i = 0; i < cfg->nfds; ++i) {
         close(cfg->fds[i]);
     }
-
-    cfg_clean(cfg);
 }
 
 int

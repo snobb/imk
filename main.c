@@ -41,6 +41,8 @@ main(int argc, char **argv)
     fd_dispatch(&cfg);
     fd_close(&cfg);
 
+    cfg_free(&cfg);
+
     return EXIT_SUCCESS;
 }
 

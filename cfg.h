@@ -18,6 +18,6 @@ struct config {
 
 void cfg_add_fd(struct config *cfg, int fd);
 void cfg_parse_args(struct config *cfg, int argc, char **argv);
-void cfg_clean(const struct config *cfg);
+void cfg_free(const struct config *cfg);
 
 #endif /* __CFG_H__ */
