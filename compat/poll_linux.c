@@ -95,8 +95,14 @@ fd_dispatch(const struct config *cfg)
                 break;
             }
 
-            LOG_INFO_VA("[====== %s (%u) =====]", cfg->files[idx], ev->wd);
-            cfg->fds[idx] = set_watch(cfg->files[idx]);
+            int wd = set_watch(cfg->files[idx]);
+
+            if (wd == -1) {
+                LOG_INFO_VA("[====== %s deleted =====]", cfg->files[idx]);
+            } else {
+                LOG_INFO_VA("[====== %s (%u) =====]", cfg->files[idx], ev->wd);
+                cfg->fds[idx] = wd;
+            }
 
             i += EVENT_SIZE + ev->len;
         }
@@ -131,11 +137,15 @@ fd_close(struct config *cfg)
 int
 set_watch(const char *path)
 {
-    int wd = inotify_add_watch(g_ifd, path, FILTERS);
+    struct stat buffer;
+    if (stat(path, &buffer) != 0) {
+        /* file no longer exists */
+        return -1;
+    }
 
+    int wd = inotify_add_watch(g_ifd, path, FILTERS);
     if (wd == -1) {
         LOG_PERROR("inotify_add_watch");
-        exit(1);
     }
 
     return wd;

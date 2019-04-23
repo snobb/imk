@@ -79,9 +79,13 @@ fd_dispatch(const struct config *cfg)
             break; /* not found */
         }
 
-        LOG_INFO_VA("[====== %s (%u) =====]", cfg->files[idx], cfg->fds[idx]);
-
-        cfg->fds[idx] = set_watch(cfg->files[idx]);
+        int fd = set_watch(cfg->files[idx]);
+        if (fd == -1) {
+            LOG_INFO_VA("[====== %s deleted =====]", cfg->files[idx]);
+        } else {
+            LOG_INFO_VA("[====== %s (%u) =====]", cfg->files[idx], cfg->fds[idx]);
+            cfg->fds[idx] = fd;
+        }
 
         if (time(NULL) > next || cfg->onerun) {
             int rv = cmd_run(cfg->cmd);
