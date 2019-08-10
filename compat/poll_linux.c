@@ -100,7 +100,12 @@ fd_dispatch(const struct config *cfg)
             if (wd == -1) {
                 LOG_INFO_VA("[====== %s deleted =====]", cfg->files[idx]);
             } else {
-                LOG_INFO_VA("[====== %s (%u) =====]", cfg->files[idx], ev->wd);
+                if (ev->len > 0) {
+                    LOG_INFO_VA("[====== %s/%s (%u) =====]", cfg->files[idx], ev->name, ev->wd);
+                } else {
+                    LOG_INFO_VA("[====== %s (%u) =====]", cfg->files[idx], ev->wd);
+                }
+
                 cfg->fds[idx] = wd;
             }
 

@@ -7,7 +7,7 @@ Usage:
 ------
 ```bash
 $ ./imk -h
-usage: ./imk [-h] [-v] -c <command> [-t <sec>] [-o] <file ...>
+usage: imk [-h] [-v] -c <command> [-t <sec>] [-o] [-r] <file ...> <dir>
 
    The options are as follows:
       -h          - display this text and exit
@@ -16,6 +16,7 @@ usage: ./imk [-h] [-v] -c <command> [-t <sec>] [-o] <file ...>
       -o          - exit after first iteration
       -t <sec>    - number of seconds to skip after the last executed command (default 0)
       -s <ms>     - number of milliseconds to sleep before reattaching in case of DELETE event (default 300)
+      -r          - if a directory is supplied, add all its sub-directories as well
       <file ...>  - list of files to monitor
 
    Please use quotes around the command if it is composed of multiple words

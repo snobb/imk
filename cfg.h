@@ -5,9 +5,10 @@ struct config {
     int threshold;
     int onerun;
     int sleep_del;
+    int recurse;
 
     const char *cmd;
-    const char **files;
+    char **files;
     size_t nfiles;
 
     /* the fds array MUST have the same order as files */

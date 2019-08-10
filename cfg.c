@@ -11,6 +11,7 @@
 
 #include "log.h"
 #include "cfg.h"
+#include "files.h"
 
 void usage(const char *pname);
 
@@ -34,7 +35,7 @@ cfg_parse_args(struct config *cfg, int argc, char **argv)
 
     cfg->sleep_del = 300;
 
-    while ((ch = getopt(argc, argv, "hvc:t:s:o")) != -1) {
+    while ((ch = getopt(argc, argv, "hvc:t:s:or")) != -1) {
         switch (ch) {
             case 'h':
                 usage(argv[0]);
@@ -60,22 +61,30 @@ cfg_parse_args(struct config *cfg, int argc, char **argv)
                 cfg->sleep_del = atoi(optarg);
                 break;
 
+            case 'r':
+                cfg->recurse = 1;
+                break;
+
             default:
                 LOG_ERR("error: unknown argument");
                 exit(EXIT_FAILURE);
         }
     }
 
-    cfg->files = (const char**)argv + optind;
-    cfg->nfiles = argc - optind;
+    if (cfg->recurse) {
+        cfg->files = files_parse((const char**)argv + optind, &cfg->nfiles);
+    } else {
+        cfg->files = argv + optind;
+        cfg->nfiles = argc - optind;
+    }
 
-    if (cfg->cmd == NULL) {
-        LOG_ERR("error: command was not specified");
+    if (cfg->nfiles == 0) {
+        LOG_ERR("error: no files to monitor");
         exit(EXIT_FAILURE);
     }
 
-    if (*cfg->files == NULL) {
-        LOG_ERR("error: no files to monitor");
+    if (cfg->cmd == NULL) {
+        LOG_ERR("error: command was not specified");
         exit(EXIT_FAILURE);
     }
 
@@ -91,13 +100,15 @@ cfg_free(const struct config *cfg)
     if (cfg->fds) {
         free(cfg->fds);
     }
+
+    files_free();
 }
 
 void
 usage(const char *pname)
 {
     fprintf(stdout,
-            "usage: %s [-h] [-v] -c <command> [-t <sec>] [-o] <file ...>\n\n"
+            "usage: %s [-h] [-v] -c <command> [-t <sec>] [-o] [-r] <file ...> <dir>\n\n"
             "   The options are as follows:\n"
             "      -h          - display this text and exit\n"
             "      -v          - display the version\n"
@@ -107,6 +118,8 @@ usage(const char *pname)
             "executed command (default 0)\n"
             "      -s <ms>     - number of milliseconds to sleep before "
             "reattaching in case of DELETE event (default 300)\n"
+            "      -r          - if a directory is supplied, add all its "
+            "sub-directories as well\n"
             "      <file ...>  - list of files to monitor\n\n"
             "   Please use quotes around the command if it is composed of "
             "multiple words\n\n", pname);
