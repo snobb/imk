@@ -41,12 +41,10 @@ fd_register(struct config *cfg, const char *path)
     }
 
     int rv = 0;
-    struct stat st;
-    if ((rv = stat(path, &st)) != 0) {
-        return -1;
+    if ((rv = set_watch(path)) == -1) {
+        return rv;
     }
 
-    rv = set_watch(path);
     cfg_add_fd(cfg, rv);
 
     return rv;
@@ -142,8 +140,8 @@ fd_close(struct config *cfg)
 int
 set_watch(const char *path)
 {
-    struct stat buffer;
-    if (stat(path, &buffer) != 0) {
+    struct stat st;
+    if (stat(path, &st) != 0) {
         /* file no longer exists */
         return -1;
     }
