@@ -10,9 +10,6 @@
 #include "compat.h"
 #include "log.h"
 
-void parse_args(struct config *cfg, int argc, char **argv);
-void usage(const char *pname);
-
 int
 main(int argc, char **argv)
 {
