@@ -1,13 +1,15 @@
 #ifndef __CFG_H__
 #define __CFG_H__
 
+#include <stdlib.h>
+
 struct config {
     int threshold;
     int onerun;
     int sleep_del;
     int recurse;
 
-    const char *cmd;
+    struct command *cmd;
     char **files;
     size_t nfiles;
 

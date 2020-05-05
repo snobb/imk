@@ -1,5 +1,4 @@
 /*
- *  files.c
  *  author: Aleksei Kozadaev (2019)
  */
 
@@ -40,10 +39,8 @@ files_parse(const char **args, size_t *nfiles)
     while (*args != NULL) {
         const char *fname = *args++;
 
-        if (is_directory(fname)) {
-            if (walk_dir(fname) == -1) {
-                abort();
-            }
+        if (is_directory(fname) && walk_dir(fname) == -1) {
+            abort();
         }
 
         add_file(fname);

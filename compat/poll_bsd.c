@@ -81,9 +81,9 @@ fd_dispatch(const struct config *cfg)
 
         int fd = set_watch(cfg->files[idx]);
         if (fd == -1) {
-            LOG_INFO_VA("[====== %s deleted =====]", cfg->files[idx]);
+            LOG_INFO_VA("[=== %s deleted ===]", cfg->files[idx]);
         } else {
-            LOG_INFO_VA("[====== %s (%u) =====]", cfg->files[idx], cfg->fds[idx]);
+            LOG_INFO_VA("[=== %s (%u) ===]", cfg->files[idx], cfg->fds[idx]);
             cfg->fds[idx] = fd;
         }
 
@@ -139,7 +139,7 @@ set_watch(const char *path)
 void
 sig_handler(int sig)
 {
-    LOG_ERR("interrupted");
+    LOG_ERR("[=== interrupted ===]");
     exit(1);
 }
 

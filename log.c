@@ -1,5 +1,4 @@
 /*
- *  log.c
  *  author: Aleksei Kozadaev (2016)
  */
 

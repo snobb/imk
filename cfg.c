@@ -1,5 +1,4 @@
 /*
- *  cfg.c
  *  author: Aleksei Kozadaev (2019)
  */
 
@@ -11,6 +10,7 @@
 
 #include "log.h"
 #include "cfg.h"
+#include "cmd.h"
 #include "files.h"
 
 void usage(const char *pname);
@@ -27,15 +27,13 @@ cfg_parse_args(struct config *cfg, int argc, char **argv)
     int ch;
     opterr = 0;
 
-    memset(cfg, 0, sizeof(*cfg));
-
     if (argc == 1) {
         usage(argv[0]);
     }
 
     cfg->sleep_del = 300;
 
-    while ((ch = getopt(argc, argv, "hvc:t:s:or")) != -1) {
+    while ((ch = getopt(argc, argv, "hvc:t:S:orwk:")) != -1) {
         switch (ch) {
             case 'h':
                 usage(argv[0]);
@@ -46,7 +44,7 @@ cfg_parse_args(struct config *cfg, int argc, char **argv)
                 exit(EXIT_SUCCESS);
 
             case 'c':
-                cfg->cmd = optarg;
+                cfg->cmd->path = optarg;
                 break;
 
             case 'o':
@@ -57,12 +55,20 @@ cfg_parse_args(struct config *cfg, int argc, char **argv)
                 cfg->threshold = atoi(optarg);
                 break;
 
-            case 's':
+            case 'S':
                 cfg->sleep_del = atoi(optarg);
                 break;
 
             case 'r':
                 cfg->recurse = 1;
+                break;
+
+            case 'w':
+                cfg->cmd->spawn = true;
+                break;
+
+            case 'k':
+                cfg->cmd->timeout_ms = atoi(optarg);
                 break;
 
             default:
@@ -83,7 +89,7 @@ cfg_parse_args(struct config *cfg, int argc, char **argv)
         exit(EXIT_FAILURE);
     }
 
-    if (cfg->cmd == NULL) {
+    if (cfg->cmd->path == NULL) {
         LOG_ERR("error: command was not specified");
         exit(EXIT_FAILURE);
     }
@@ -108,19 +114,22 @@ void
 usage(const char *pname)
 {
     fprintf(stdout,
-            "usage: %s [-h] [-v] -c <command> [-t <sec>] [-o] [-r] <file ...> <dir>\n\n"
-            "   The options are as follows:\n"
-            "      -h          - display this text and exit\n"
-            "      -v          - display the version\n"
-            "      -c <cmd>    - command to execute when event is triggered\n"
-            "      -o          - exit after first iteration\n"
-            "      -t <sec>    - number of seconds to skip after the last "
-            "executed command (default 0)\n"
-            "      -s <ms>     - number of milliseconds to sleep before "
-            "reattaching in case of DELETE event (default 300)\n"
-            "      -r          - if a directory is supplied, add all its "
-            "sub-directories as well\n"
-            "      <file ...>  - list of files to monitor\n\n"
-            "   Please use quotes around the command if it is composed of "
-            "multiple words\n\n", pname);
+            "usage: %s [-h] [-v] -c <command> [-t <sec>] [-S <ms>] [-o] [-r] [-w] [-k <ms>] "
+            "<file ...> <dir>\n\n   The options are as follows:\n"
+            "      -h         - display this text and exit\n"
+            "      -v         - display the version\n"
+            "      -c <cmd>   - command to execute when event is triggered\n"
+            "      -t <sec>   - number of seconds to skip after the last executed "
+            "command (default 0)\n"
+            "      -S <ms>    - number of ms to sleep before reattaching in case of "
+            "DELETE event (default 300)\n"
+            "      -o         - exit after first iteration\n"
+            "      -r         - if a directory is supplied, add all its sub-directories "
+            "as well\n"
+            "      -w         - spawn a subprocess for command\n"
+            "      -k <ms>    - timeout after which to kill the command subproces "
+            "(default - do not kill, assumes -w)\n"
+            "      <file ...> - list of files to monitor\n\n"
+            "   Please use quotes around the command if it is composed of multiple "
+            "words\n\n", pname);
 }
