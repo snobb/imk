@@ -78,7 +78,7 @@ cfg_parse_args(struct config *cfg, int argc, char **argv)
     }
 
     if (cfg->recurse) {
-        cfg->files = files_parse((const char**)argv + optind, &cfg->nfiles);
+        cfg->files = files_parse((const char **) argv + optind, &cfg->nfiles);
     } else {
         cfg->files = argv + optind;
         cfg->nfiles = argc - optind;

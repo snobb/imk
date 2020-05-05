@@ -29,8 +29,8 @@ char **
 files_parse(const char **args, size_t *nfiles)
 {
     assert(!fstore);
-
     fstore = malloc(sizeof(*fstore) * fcap);
+
     if (!fstore) {
         LOG_PERROR("malloc");
         abort();
@@ -65,8 +65,8 @@ add_file(const char *file)
 {
     if (fsize == fcap) {
         fcap *= 2;
-
         fstore = realloc(fstore, sizeof(*fstore) * fcap);
+
         if (!fstore) {
             LOG_PERROR("realloc");
             abort();
@@ -117,6 +117,7 @@ walk_dir(const char *dir)
     }
 
     dirlen = strlen(dir);
+
     while ((dp = readdir(dfd)) != NULL) {
         if (!strcmp(dp->d_name, ".") || !strcmp(dp->d_name, "..")) {
             continue;
@@ -146,9 +147,11 @@ walk_dir(const char *dir)
 
     closedir(dfd);
     return 0;
-
 error:
-    if (dfd) { closedir(dfd); }
+
+    if (dfd) {
+        closedir(dfd);
+    }
+
     return -1;
 }
-

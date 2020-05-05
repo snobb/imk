@@ -20,7 +20,8 @@ int fork_wait(pid_t pid, int timeout_ms, int *status, int signal);
 long current_time_ms();
 
 int
-cmd_run(const struct command *cmd) {
+cmd_run(const struct command *cmd)
+{
     if (cmd->spawn || cmd->timeout_ms > 0) {
         return run_spawn(cmd);
     } else {
@@ -29,19 +30,22 @@ cmd_run(const struct command *cmd) {
 }
 
 int
-run_system(const struct command *cmd) {
-    int rv = system(cmd->path);
-    if (rv < 0) {
+run_system(const struct command *cmd)
+{
+    int retcode = system(cmd->path);
+
+    if (retcode < 0) {
         LOG_PERROR("[=== system ===]");
     } else {
-        LOG_INFO_VA("[=== %s (exit code %d) ===]", rv == 0 ? "ok" : "fail", rv);
+        LOG_INFO_VA("[=== (exit code %d) ===]", retcode);
     }
 
-    return rv;
+    return retcode;
 }
 
 int
-run_spawn(const struct command *cmd) {
+run_spawn(const struct command *cmd)
+{
     int status;
     pid_t pid = 0;
 
@@ -64,7 +68,8 @@ run_spawn(const struct command *cmd) {
             break;
 
         default:
-            LOG_INFO_VA("[=== (pid %d, killed with: %d) ===]", pid, WTERMSIG(status));
+            LOG_INFO_VA("[=== (pid %d, killed with: %d) ===]", pid,
+                        WTERMSIG(status));
             break;
     }
 
@@ -72,7 +77,8 @@ run_spawn(const struct command *cmd) {
 }
 
 int
-fork_wait(pid_t pid, int timeout_ms, int *status, int signal) {
+fork_wait(pid_t pid, int timeout_ms, int *status, int signal)
+{
     long start = current_time_ms();
     *status = -1;
 
@@ -100,9 +106,10 @@ fork_wait(pid_t pid, int timeout_ms, int *status, int signal) {
     }
 }
 
-long current_time_ms() {
+long
+current_time_ms()
+{
     struct timeval time;
     gettimeofday(&time, NULL);
-
     return time.tv_sec * 1000 + time.tv_usec / 1000;
 }

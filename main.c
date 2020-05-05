@@ -13,8 +13,8 @@
 int
 main(int argc, char **argv)
 {
-    struct command cmd = {0};
-    struct config cfg = {0, .cmd = &cmd};
+    struct command cmd = { 0 };
+    struct config cfg = { 0, .cmd = &cmd };
 
     setbuf(stdout, NULL);
     setbuf(stderr, NULL);
@@ -22,12 +22,12 @@ main(int argc, char **argv)
     cfg_parse_args(&cfg, argc, argv);
 
     printf(":: [%s] start monitoring: cmd[%s] cmd-timeout[%d], threshold[%d] files[",
-            get_time(), cfg.cmd->path, cfg.cmd->timeout_ms, cfg.threshold);
+           get_time(), cfg.cmd->path, cfg.cmd->timeout_ms, cfg.threshold);
 
     for (int i = 0; i < cfg.nfiles; ++i) {
         fd_register(&cfg, cfg.files[i]);
 
-        if (i < cfg.nfiles-1) {
+        if (i < cfg.nfiles - 1) {
             printf("%s ", cfg.files[i]);
         } else {
             printf("%s", cfg.files[i]);
@@ -43,4 +43,3 @@ main(int argc, char **argv)
 
     return EXIT_SUCCESS;
 }
-

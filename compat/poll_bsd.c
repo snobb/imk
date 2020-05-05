@@ -37,7 +37,6 @@ fd_register(struct config *cfg, const char *path)
 
     int fd = set_watch(path);
     cfg_add_fd(cfg, fd);
-
     return fd;
 }
 
@@ -69,6 +68,7 @@ fd_dispatch(const struct config *cfg)
         }
 
         int idx;
+
         for (idx = 0; idx < cfg->nfds; ++idx) {
             if (cfg->fds[idx] == (int)(intptr_t)ev.udata) {
                 break;
@@ -80,6 +80,7 @@ fd_dispatch(const struct config *cfg)
         }
 
         int fd = set_watch(cfg->files[idx]);
+
         if (fd == -1) {
             LOG_INFO_VA("[=== %s deleted ===]", cfg->files[idx]);
         } else {
@@ -118,15 +119,17 @@ int
 set_watch(const char *path)
 {
     int fd = open(path, O_RDONLY);
+
     if (fd == -1) {
         return fd;
     }
 
     struct kevent ev;
+
     int filter = EVFILT_VNODE;
 
     EV_SET(&ev, fd, filter, EV_ADD | EV_ONESHOT, NOTE_WRITE |
-            NOTE_DELETE | NOTE_RENAME, 0, (void*)(intptr_t)fd);
+           NOTE_DELETE | NOTE_RENAME, 0, (void *)(intptr_t)fd);
 
     if (kevent(g_kq, &ev, 1, NULL, 0, NULL) == -1) {
         LOG_PERROR("kevent");

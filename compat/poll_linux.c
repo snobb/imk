@@ -41,12 +41,12 @@ fd_register(struct config *cfg, const char *path)
     }
 
     int rv = 0;
+
     if ((rv = set_watch(path)) == -1) {
         return rv;
     }
 
     cfg_add_fd(cfg, rv);
-
     return rv;
 }
 
@@ -83,6 +83,7 @@ fd_dispatch(const struct config *cfg)
             }
 
             int idx;
+
             for (idx = 0; idx < cfg->nfds; ++idx) {
                 if (cfg->fds[idx] == ev->wd) {
                     break;
@@ -141,12 +142,14 @@ int
 set_watch(const char *path)
 {
     struct stat st;
+
     if (stat(path, &st) != 0) {
         /* file no longer exists */
         return -1;
     }
 
     int wd = inotify_add_watch(g_ifd, path, FILTERS);
+
     if (wd == -1) {
         LOG_PERROR("inotify_add_watch");
     }
