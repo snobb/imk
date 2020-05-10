@@ -6,7 +6,7 @@
 struct config {
     int threshold;
     int onerun;
-    int sleep_del;
+    int sleep_delay;
     int recurse;
 
     struct command *cmd;

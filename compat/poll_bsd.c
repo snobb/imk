@@ -64,7 +64,7 @@ fd_dispatch(const struct config *cfg)
          * for a while before try to reattach to the file.*/
         if ((ev.filter == EVFILT_VNODE) &&
                 ((ev.fflags & NOTE_DELETE) || (ev.fflags & NOTE_RENAME))) {
-            usleep(cfg->sleep_del * 1000);
+            usleep(cfg->sleep_delay * 1000);
         }
 
         int idx;
@@ -82,9 +82,9 @@ fd_dispatch(const struct config *cfg)
         int fd = set_watch(cfg->files[idx]);
 
         if (fd == -1) {
-            LOG_INFO_VA("[=== %s deleted ===]", cfg->files[idx]);
+            LOG_INFO_VA("=== %s deleted ===", cfg->files[idx]);
         } else {
-            LOG_INFO_VA("[=== %s (%u) ===]", cfg->files[idx], cfg->fds[idx]);
+            LOG_INFO_VA("=== %s (%u) ===", cfg->files[idx], cfg->fds[idx]);
             cfg->fds[idx] = fd;
         }
 
@@ -142,7 +142,7 @@ set_watch(const char *path)
 void
 sig_handler(int sig)
 {
-    LOG_ERR("[=== interrupted ===]");
+    LOG_ERROR("interrupted");
     exit(1);
 }
 

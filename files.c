@@ -124,7 +124,7 @@ walk_dir(const char *dir)
         }
 
         if ((dirlen + strlen(dp->d_name) + 2) > MAXPATH) {
-            LOG_ERR("directory name is too long");
+            LOG_ERROR("directory name is too long");
             goto error;
         }
 

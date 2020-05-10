@@ -6,16 +6,16 @@
 #include <errno.h>
 
 #define LOG_PERROR(m)           \
-    fprintf(stderr, ":: [%s] "m": %s\n", get_time(), strerror(errno));
+    fprintf(stderr, "!! [%s] error: "m": %s\n", get_time(), strerror(errno));
 
 #define LOG_PERROR_VA(m, ...)   \
-    fprintf(stderr, ":: [%s] "m": %s\n", get_time(), __VA_ARGS__, strerror(errno));
+    fprintf(stderr, "!! [%s] error: "m": %s\n", get_time(), __VA_ARGS__, strerror(errno));
 
-#define LOG_ERR(m)              \
-    fprintf(stderr, ":: [%s] "m"\n", get_time());
+#define LOG_ERROR(m)            \
+    fprintf(stderr, "!! [%s] error: "m"\n", get_time());
 
-#define LOG_ERR_VA(m, ...)      \
-    fprintf(stderr, ":: [%s] "m"\n", get_time(), __VA_ARGS__);
+#define LOG_ERROR_VA(m, ...)    \
+    fprintf(stderr, "!! [%s] error: "m"\n", get_time(), __VA_ARGS__);
 
 #define LOG_INFO(m)             \
     fprintf(stdout, ":: [%s] "m"\n", get_time());

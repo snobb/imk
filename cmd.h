@@ -4,12 +4,14 @@
 #include <stdbool.h>
 
 struct command {
-    const char *path;
-    bool spawn;
+    bool no_spawn;
     int timeout_ms;
-    char **environ;
+    const char *path;
+    const char *teardown;
 };
 
+
+struct command cmd_make();
 int cmd_run(const struct command *cmd);
 
 #endif /* __CMD_H__ */

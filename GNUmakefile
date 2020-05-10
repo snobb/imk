@@ -42,21 +42,21 @@ else
 	VERSION := "$(REVCNT).$(REVHASH)$(ISCLEAN)"
 endif
 
-all: debug
+all :: debug
 
-debug: CFLAGS += -g -ggdb -DDEBUG
-debug: LFLAGS += -g
-debug: build
+debug :: CFLAGS += -g -ggdb -DDEBUG
+debug :: LFLAGS += -g
+debug :: build
 
-release: CFLAGS += -O3
-release: clean build
+release :: CFLAGS += -O3
+release :: clean build
 	strip $(TARGET)
 
-static: CFLAGS += -static
-static: LFLAGS += -static
-static: release
+static :: CFLAGS += -static
+static :: LFLAGS += -static
+static :: release
 
-build: $(OBJDIR) $(BUILD_HOST) $(TARGET)
+build : $(OBJDIR) $(BUILD_HOST) $(TARGET)
 
 $(BUILD_HOST):
 	@echo "#define BUILD_HOST \"`hostname`\""      > $(BUILD_HOST)
@@ -65,10 +65,10 @@ $(BUILD_HOST):
 	@echo "#define BUILD_KERNEL \"`uname -r`\""   >> $(BUILD_HOST)
 	@echo "#define VERSION \"$(VERSION)\""        >> $(BUILD_HOST)
 
-$(TARGET): $(BUILD_HOST) $(OBJ)
+$(TARGET) : $(BUILD_HOST) $(OBJ)
 	$(CC) $(LFLAGS) -o $@ $(OBJ)
 
-$(OBJDIR):
+$(OBJDIR) :
 	@mkdir -p $(OBJDIR)
 
 $(OBJDIR)/%.o : %.c
@@ -77,14 +77,16 @@ $(OBJDIR)/%.o : %.c
 $(OBJDIR)/%.o : compat/%.c
 	$(CC) $(CFLAGS) -o $@ -c $<
 
-install: release
+install :: release
 	$(INSTALL) $(INSTALL_ARGS) $(TARGET) $(INSTALL_DIR)
-	@echo "DONE"
 
-clean:
+install-static :: static
+	$(INSTALL) $(INSTALL_ARGS) $(TARGET) $(INSTALL_DIR)
+
+clean ::
 	-rm -f *.core
 	-rm -f $(BUILD_HOST)
 	-rm -f $(TARGET)
 	-rm -rf ./$(OBJDIR)
 
-.PHONY : all debug release static build install clean
+.PHONY :: all build debug release static install install-static clean

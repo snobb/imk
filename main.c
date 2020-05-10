@@ -13,7 +13,7 @@
 int
 main(int argc, char **argv)
 {
-    struct command cmd = { 0 };
+    struct command cmd = cmd_make();
     struct config cfg = { 0, .cmd = &cmd };
 
     setbuf(stdout, NULL);

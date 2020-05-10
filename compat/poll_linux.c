@@ -79,16 +79,13 @@ fd_dispatch(const struct config *cfg)
              * to reattach to the file immediately it may not exist. So sleep
              * for a while before try to reattach to the file.*/
             if ((ev->mask & IN_DELETE_SELF) || (ev->mask & IN_MOVE_SELF)) {
-                usleep(cfg->sleep_del * 1000);
+                usleep(cfg->sleep_delay * 1000);
             }
 
             int idx;
 
-            for (idx = 0; idx < cfg->nfds; ++idx) {
-                if (cfg->fds[idx] == ev->wd) {
-                    break;
-                }
-            }
+            for (idx = 0; idx < cfg->nfds && cfg->fds[idx] != ev->wd; ++idx)
+                ;
 
             if (idx == cfg->nfds) {
                 break;
@@ -97,12 +94,12 @@ fd_dispatch(const struct config *cfg)
             int wd = set_watch(cfg->files[idx]);
 
             if (wd == -1) {
-                LOG_INFO_VA("[=== %s deleted ===]", cfg->files[idx]);
+                LOG_INFO_VA("=== %s deleted ===", cfg->files[idx]);
             } else {
                 if (ev->len > 0) {
-                    LOG_INFO_VA("[=== %s/%s (%u) ===]", cfg->files[idx], ev->name, ev->wd);
+                    LOG_INFO_VA("=== %s/%s (%u) ===", cfg->files[idx], ev->name, ev->wd);
                 } else {
-                    LOG_INFO_VA("[=== %s (%u) ===]", cfg->files[idx], ev->wd);
+                    LOG_INFO_VA("=== %s (%u) ===", cfg->files[idx], ev->wd);
                 }
 
                 cfg->fds[idx] = wd;
@@ -160,7 +157,7 @@ set_watch(const char *path)
 void
 sig_handler(int sig)
 {
-    LOG_ERR("[=== interrupted ===]");
+    LOG_ERROR("interrupted");
     exit(1);
 }
 

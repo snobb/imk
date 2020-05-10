@@ -31,48 +31,52 @@ cfg_parse_args(struct config *cfg, int argc, char **argv)
         usage(argv[0]);
     }
 
-    cfg->sleep_del = 300;
+    cfg->sleep_delay = 300;
 
-    while ((ch = getopt(argc, argv, "hvc:t:S:orwk:")) != -1) {
+    while ((ch = getopt(argc, argv, "c:d:hk:orS:t:vw")) != -1) {
         switch (ch) {
             case 'h':
                 usage(argv[0]);
-                exit(EXIT_SUCCESS);
-
-            case 'v':
-                printf("%s\n", VERSION);
                 exit(EXIT_SUCCESS);
 
             case 'c':
                 cfg->cmd->path = optarg;
                 break;
 
-            case 'o':
-                cfg->onerun = 1;
-                break;
-
-            case 't':
-                cfg->threshold = atoi(optarg);
-                break;
-
-            case 'S':
-                cfg->sleep_del = atoi(optarg);
-                break;
-
-            case 'r':
-                cfg->recurse = 1;
-                break;
-
-            case 'w':
-                cfg->cmd->spawn = true;
+            case 'd':
+                cfg->cmd->teardown = optarg;
                 break;
 
             case 'k':
                 cfg->cmd->timeout_ms = atoi(optarg);
                 break;
 
+            case 'o':
+                cfg->onerun = 1;
+                break;
+
+            case 'r':
+                cfg->recurse = 1;
+                break;
+
+            case 'S':
+                cfg->sleep_delay = atoi(optarg);
+                break;
+
+            case 't':
+                cfg->threshold = atoi(optarg);
+                break;
+
+            case 'v':
+                printf("%s\n", VERSION);
+                exit(EXIT_SUCCESS);
+
+            case 'w':
+                cfg->cmd->no_spawn = true;
+                break;
+
             default:
-                LOG_ERR("error: unknown argument");
+                LOG_ERROR("unknown argument");
                 exit(EXIT_FAILURE);
         }
     }
@@ -85,12 +89,12 @@ cfg_parse_args(struct config *cfg, int argc, char **argv)
     }
 
     if (cfg->nfiles == 0) {
-        LOG_ERR("error: no files to monitor");
+        LOG_ERROR("no files to monitor");
         exit(EXIT_FAILURE);
     }
 
     if (cfg->cmd->path == NULL) {
-        LOG_ERR("error: command was not specified");
+        LOG_ERROR("command was not specified");
         exit(EXIT_FAILURE);
     }
 
@@ -114,22 +118,24 @@ void
 usage(const char *pname)
 {
     fprintf(stdout,
-            "usage: %s [-h] [-v] -c <command> [-t <sec>] [-S <ms>] [-o] [-r] [-w] [-k <ms>] "
-            "<file ...> <dir>\n\n   The options are as follows:\n"
-            "      -h         - display this text and exit\n"
-            "      -v         - display the version\n"
+            "usage: %s -c <command> -d <command> [-h] [-k <ms>] [-o] [-r] [-S <ms>] [-t <sec>] "
+            "[-v] [-w] <file ...> <dir>\n\n   The options are as follows:\n"
             "      -c <cmd>   - command to execute when event is triggered\n"
-            "      -t <sec>   - number of seconds to skip after the last executed "
-            "command (default 0)\n"
-            "      -S <ms>    - number of ms to sleep before reattaching in case of "
-            "DELETE event (default 300)\n"
-            "      -o         - exit after first iteration\n"
+            "      -d <cmd>   - teardown command to execute when -k timeout occurs\n"
+            "      -h         - display this text and exit\n"
+            "      -k <ms>    - timeout after which to kill the command subproces "
+            "(default - do not kill)\n"
+            "      -o         - exit after the first iteration\n"
             "      -r         - if a directory is supplied, add all its sub-directories "
             "as well\n"
-            "      -w         - spawn a subprocess for command\n"
-            "      -k <ms>    - timeout after which to kill the command subproces "
-            "(default - do not kill, assumes -w)\n"
-            "      <file ...> - list of files to monitor\n\n"
-            "   Please use quotes around the command if it is composed of multiple "
-            "words\n\n", pname);
+            "      -S <ms>    - number of ms to sleep before reattaching in case of "
+            "DELETE event (default 300)\n"
+            "      -t <sec>   - number of seconds to skip after the last executed "
+            "command (default 0)\n"
+            "      -v         - display the version [%s]\n"
+            "      -w         - do not spawn a subprocess for command (not compatible "
+            "with -k and -d)\n"
+            "      <file/dir ...> - list of files or folders to monitor\n\n"
+            "   Please use quotes around the command and teardown command if it is "
+            "composed of multiple words\n\n", pname, VERSION);
 }
