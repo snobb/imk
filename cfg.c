@@ -13,6 +13,8 @@
 #include "cmd.h"
 #include "files.h"
 
+#define DEFAULT_SLEEP_DELAY 300
+
 void usage(const char *pname);
 
 inline void
@@ -31,7 +33,7 @@ cfg_parse_args(struct config *cfg, int argc, char **argv)
         usage(argv[0]);
     }
 
-    cfg->sleep_delay = 300;
+    cfg->sleep_delay = DEFAULT_SLEEP_DELAY;
 
     while ((ch = getopt(argc, argv, "c:d:hk:orS:t:vw")) != -1) {
         switch (ch) {
@@ -112,6 +114,41 @@ cfg_free(const struct config *cfg)
     }
 
     files_free();
+}
+
+void
+cfg_print_header(const struct config *cfg)
+{
+    printf(":: [%s] start monitoring: ", get_time());
+    cmd_print_header(cfg->cmd);
+
+    if (cfg->threshold > 0) {
+        printf("threshold[%d] ", cfg->threshold);
+    }
+
+    if (cfg->sleep_delay != DEFAULT_SLEEP_DELAY) {
+        printf("sleep-delay[%d] ", cfg->sleep_delay);
+    }
+
+    if (cfg->onerun) {
+        printf("once ");
+    }
+
+    if (cfg->recurse) {
+        printf("recurse ");
+    }
+
+    printf("files[");
+
+    for (int i = 0; i < cfg->nfiles; ++i) {
+        if (i < cfg->nfiles - 1) {
+            printf("%s ", cfg->files[i]);
+        } else {
+            printf("%s", cfg->files[i]);
+        }
+    }
+
+    printf("]\n");
 }
 
 void

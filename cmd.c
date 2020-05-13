@@ -38,7 +38,6 @@ cmd_make()
         .path = NULL,
         .teardown = NULL
     };
-
     return ret;
 }
 
@@ -49,6 +48,20 @@ cmd_run(const struct command *cmd)
         return run_system(cmd);
     } else {
         return run_spawn(cmd);
+    }
+}
+
+void
+cmd_print_header(const struct command *cmd)
+{
+    printf("cmd[%s] ", cmd->path);
+
+    if (cmd->timeout_ms > 0) {
+        printf("cmd-timeout[%d] ", cmd->timeout_ms);
+
+        if (cmd->teardown) {
+            printf("cmd-teardown[%s] ", cmd->teardown);
+        }
     }
 }
 
@@ -78,7 +91,7 @@ run_spawn(const struct command *cmd)
     }
 
     if (pid == 0) {
-        exit(system(cmd->path));
+        exit(execl("/bin/sh", "sh", "-c", cmd->path, NULL));
     }
 
     switch (fork_wait(pid, cmd->timeout_ms, &status)) {
@@ -99,9 +112,7 @@ run_spawn(const struct command *cmd)
                 char buf[32];
                 sprintf(buf, "%d", pid);
                 setenv("CMD_PID", buf, true);
-
                 LOG_INFO_VA("=== teardown: [%s] ===", cmd->teardown);
-
                 int status = system(cmd->teardown);
 
                 if (status == -1) {
@@ -109,7 +120,6 @@ run_spawn(const struct command *cmd)
                 } else {
                     LOG_INFO_VA("=== teardown: exit code %d ===", status);
                 }
-
             } else {
                 if (kill(pid, KILLSIG) == -1) {
                     LOG_PERROR("timeout kill");

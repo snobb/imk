@@ -10,8 +10,8 @@ struct command {
     const char *teardown;
 };
 
-
 struct command cmd_make();
 int cmd_run(const struct command *cmd);
+void cmd_print_header(const struct command *cmd);
 
 #endif /* __CMD_H__ */
