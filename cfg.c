@@ -15,7 +15,7 @@
 
 #define DEFAULT_SLEEP_DELAY 300
 
-void usage(const char *pname);
+static void usage(const char *pname);
 
 inline void
 cfg_add_fd(struct config *cfg, int fd)
@@ -35,7 +35,7 @@ cfg_parse_args(struct config *cfg, int argc, char **argv)
 
     cfg->sleep_delay = DEFAULT_SLEEP_DELAY;
 
-    while ((ch = getopt(argc, argv, "c:d:hk:orS:t:vw")) != -1) {
+    while ((ch = getopt(argc, argv, "c:d:hk:orsS:t:vw")) != -1) {
         switch (ch) {
             case 'h':
                 usage(argv[0]);
@@ -54,11 +54,15 @@ cfg_parse_args(struct config *cfg, int argc, char **argv)
                 break;
 
             case 'o':
-                cfg->onerun = 1;
+                cfg->onerun = true;
                 break;
 
             case 'r':
-                cfg->recurse = 1;
+                cfg->recurse = true;
+                break;
+
+            case 's':
+                cfg->cmd->wrap_shell = true;
                 break;
 
             case 'S':
@@ -155,7 +159,7 @@ void
 usage(const char *pname)
 {
     fprintf(stdout,
-            "usage: %s -c <command> -d <command> [-h] [-k <ms>] [-o] [-r] [-S <ms>] [-t <sec>] "
+            "usage: %s -c <command> -d <command> [-h] [-k <ms>] [-o] [-r] [-s] [-S <ms>] [-t <sec>] "
             "[-v] [-w] <file ...> <dir>\n\n   The options are as follows:\n"
             "      -c <cmd>   - command to execute when event is triggered\n"
             "      -d <cmd>   - teardown command to execute when -k timeout occurs\n"
@@ -165,6 +169,7 @@ usage(const char *pname)
             "      -o         - exit after the first iteration\n"
             "      -r         - if a directory is supplied, add all its sub-directories "
             "as well\n"
+            "      -s         - run the command inside a shell (eg. /bin/sh -c <cmd>)\n"
             "      -S <ms>    - number of ms to sleep before reattaching in case of "
             "DELETE event (default 300)\n"
             "      -t <sec>   - number of seconds to skip after the last executed "

@@ -1,13 +1,14 @@
 #ifndef __CFG_H__
 #define __CFG_H__
 
+#include <stdbool.h>
 #include <stdlib.h>
 
 struct config {
     int threshold;
-    int onerun;
     int sleep_delay;
-    int recurse;
+    bool onerun;
+    bool recurse;
 
     struct command *cmd;
     char **files;

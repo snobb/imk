@@ -2,9 +2,7 @@
  *  author: Aleksei Kozadaev (2018)
  */
 
-#include <errno.h>
 #include <stdlib.h>
-#include <time.h>
 #include <unistd.h>
 #include <signal.h>
 #include <sys/time.h>
@@ -14,12 +12,15 @@
 #include "log.h"
 #include "cmd.h"
 
-int run_system(const struct command *cmd);
-int run_spawn(const struct command *cmd);
-int fork_wait(pid_t pid, int timeout_ms, int *status);
-long current_time_ms();
+static int exec_command(const struct command *cmd);
+static void parse_args(char *line, char **argv);
+static int run_system(const struct command *cmd);
+static int run_spawn(const struct command *cmd);
+static int fork_wait(pid_t pid, int timeout_ms, int *status);
+static long current_time_ms();
 
 #define KILLSIG SIGINT
+#define CMD_WORDS 255
 
 enum {
     RET_OK,
@@ -34,6 +35,7 @@ cmd_make()
 {
     struct command ret = {
         .no_spawn = false,
+        .wrap_shell = false,
         .timeout_ms = 0,
         .path = NULL,
         .teardown = NULL
@@ -91,7 +93,7 @@ run_spawn(const struct command *cmd)
     }
 
     if (pid == 0) {
-        exit(execl("/bin/sh", "sh", "-c", cmd->path, NULL));
+        exit(exec_command(cmd));
     }
 
     switch (fork_wait(pid, cmd->timeout_ms, &status)) {
@@ -170,4 +172,33 @@ current_time_ms()
     struct timeval time;
     gettimeofday(&time, NULL);
     return time.tv_sec * 1000 + time.tv_usec / 1000;
+}
+
+int
+exec_command(const struct command *cmd)
+{
+    int rv = 0;
+
+    if (cmd->wrap_shell) {
+        rv = execl("/bin/sh", "sh", "-c", cmd->path, NULL);
+    } else {
+        char *argv[CMD_WORDS] = {0};
+        parse_args(cmd->path, argv);
+        rv = execvp(*argv, argv);
+    }
+
+    return rv;
+}
+
+void
+parse_args(char *line, char **argv)
+{
+    const char *delim = " ";
+    char *token = strtok(line, delim);
+    *argv++ = token;
+
+    while (token != NULL) {
+        token = strtok(NULL, delim);
+        *argv++ = token;
+    }
 }

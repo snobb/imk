@@ -5,8 +5,9 @@
 
 struct command {
     bool no_spawn;
+    bool wrap_shell;
     int timeout_ms;
-    const char *path;
+    char *path;
     const char *teardown;
 };
 

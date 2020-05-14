@@ -7,7 +7,7 @@ Usage:
 ------
 ```bash
 $ ./imk -h
-usage: ./imk -c <command> -d <command> [-h] [-k <ms>] [-o] [-r] [-S <ms>] [-t <sec>] [-v] [-w] <file ...> <dir>
+usage: ./imk -c <command> -d <command> [-h] [-k <ms>] [-o] [-r] [-s] [-S <ms>] [-t <sec>] [-v] [-w] <file ...> <dir>
 
    The options are as follows:
       -c <cmd>   - command to execute when event is triggered
@@ -16,9 +16,10 @@ usage: ./imk -c <command> -d <command> [-h] [-k <ms>] [-o] [-r] [-S <ms>] [-t <s
       -k <ms>    - timeout after which to kill the command subproces (default - do not kill)
       -o         - exit after the first iteration
       -r         - if a directory is supplied, add all its sub-directories as well
+      -s         - run the command inside a shell (eg. /bin/sh -c <cmd>)
       -S <ms>    - number of ms to sleep before reattaching in case of DELETE event (default 300)
       -t <sec>   - number of seconds to skip after the last executed command (default 0)
-      -v         - display the version [40.cea99a4 [devel]]
+      -v         - display the version [<version>]
       -w         - do not spawn a subprocess for command (not compatible with -k and -d)
       <file/dir ...> - list of files or folders to monitor
 
