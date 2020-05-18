@@ -7,20 +7,20 @@ Usage:
 ------
 ```bash
 $ ./imk -h
-usage: ./imk -c <command> -d <command> [-h] [-k <ms>] [-o] [-r] [-s] [-S <ms>] [-t <sec>] [-v] [-w] <file ...> <dir>
+usage: imk -c <command> [options] <file/dir ...>
 
    The options are as follows:
       -c <cmd>   - command to execute when event is triggered
-      -d <cmd>   - teardown command to execute when -k timeout occurs
+      -d <cmd>   - teardown command to execute when -k timeout occurs (assumes -w)
       -h         - display this text and exit
-      -k <ms>    - timeout after which to kill the command subproces (default - do not kill)
+      -k <ms>    - timeout after which to kill the command subproces (default - do not kill. Assumes -w.)
       -o         - exit after the first iteration
       -r         - if a directory is supplied, add all its sub-directories as well
-      -s         - run the command inside a shell (eg. /bin/sh -c <cmd>)
+      -s         - do not run the command inside a shell (eg. /bin/sh -c <cmd>)
       -S <ms>    - number of ms to sleep before reattaching in case of DELETE event (default 300)
       -t <sec>   - number of seconds to skip after the last executed command (default 0)
       -v         - display the version [<version>]
-      -w         - do not spawn a subprocess for command (not compatible with -k and -d)
+      -w         - spawn a subprocess for command.
       <file/dir ...> - list of files or folders to monitor
 
    Please use quotes around the command and teardown command if it is composed of multiple words

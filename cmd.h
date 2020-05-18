@@ -4,7 +4,7 @@
 #include <stdbool.h>
 
 struct command {
-    bool no_spawn;
+    bool spawn;
     bool wrap_shell;
     int timeout_ms;
     char *path;

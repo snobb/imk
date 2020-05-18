@@ -62,7 +62,7 @@ cfg_parse_args(struct config *cfg, int argc, char **argv)
                 break;
 
             case 's':
-                cfg->cmd->wrap_shell = true;
+                cfg->cmd->wrap_shell = false;
                 break;
 
             case 'S':
@@ -78,7 +78,7 @@ cfg_parse_args(struct config *cfg, int argc, char **argv)
                 exit(EXIT_SUCCESS);
 
             case 'w':
-                cfg->cmd->no_spawn = true;
+                cfg->cmd->spawn = true;
                 break;
 
             default:
@@ -158,25 +158,24 @@ cfg_print_header(const struct config *cfg)
 void
 usage(const char *pname)
 {
-    fprintf(stdout,
-            "usage: %s -c <command> -d <command> [-h] [-k <ms>] [-o] [-r] [-s] [-S <ms>] [-t <sec>] "
-            "[-v] [-w] <file ...> <dir>\n\n   The options are as follows:\n"
+    fprintf(stdout, "usage: %s -c <command> [options] <file/dir ...>\n\n"
+            "   The options are as follows:\n"
             "      -c <cmd>   - command to execute when event is triggered\n"
-            "      -d <cmd>   - teardown command to execute when -k timeout occurs\n"
+            "      -d <cmd>   - teardown command to execute when -k timeout occurs "
+            "(assumes -w)\n"
             "      -h         - display this text and exit\n"
             "      -k <ms>    - timeout after which to kill the command subproces "
-            "(default - do not kill)\n"
+            "(default - do not kill. Assumes -w.)\n"
             "      -o         - exit after the first iteration\n"
             "      -r         - if a directory is supplied, add all its sub-directories "
             "as well\n"
-            "      -s         - run the command inside a shell (eg. /bin/sh -c <cmd>)\n"
+            "      -s         - do not run the command inside a shell (eg. /bin/sh -c <cmd>)\n"
             "      -S <ms>    - number of ms to sleep before reattaching in case of "
             "DELETE event (default 300)\n"
             "      -t <sec>   - number of seconds to skip after the last executed "
             "command (default 0)\n"
             "      -v         - display the version [%s]\n"
-            "      -w         - do not spawn a subprocess for command (not compatible "
-            "with -k and -d)\n"
+            "      -w         - spawn a subprocess for command.\n"
             "      <file/dir ...> - list of files or folders to monitor\n\n"
             "   Please use quotes around the command and teardown command if it is "
             "composed of multiple words\n\n", pname, VERSION);

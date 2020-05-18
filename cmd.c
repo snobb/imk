@@ -34,22 +34,23 @@ struct command
 cmd_make()
 {
     struct command ret = {
-        .no_spawn = false,
-        .wrap_shell = false,
+        .spawn = false,
+        .wrap_shell = true,
         .timeout_ms = 0,
         .path = NULL,
         .teardown = NULL
     };
+
     return ret;
 }
 
 int
 cmd_run(const struct command *cmd)
 {
-    if (cmd->no_spawn) {
-        return run_system(cmd);
-    } else {
+    if (cmd->spawn || cmd->timeout_ms > 0 || cmd->teardown) {
         return run_spawn(cmd);
+    } else {
+        return run_system(cmd);
     }
 }
 
