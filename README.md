@@ -2,9 +2,47 @@ IMK
 ============
 Simple file watcher similar to fswatch or inotify-wait that works both in linux and *BSD.
 
+Install
+-------
+```bash
+make release && sudo make install clean
+```
 
-Usage:
-------
+to build and install a statically linked version:
+```bash
+make static && sudo make install clean
+```
+
+To build a small static binary, the musl libc can be used as follows:
+```bash
+$ make static CC=musl-gcc && sudo make install clean
+rm -f *.core
+rm -f build_host.h
+rm -f imk
+rm -rf ./obj
+musl-gcc -D_DEFAULT_SOURCE -Werror -Wall  -std=c99 -pedantic -static -O3 -o obj/files.o -c files.c
+musl-gcc -D_DEFAULT_SOURCE -Werror -Wall  -std=c99 -pedantic -static -O3 -o obj/log.o -c log.c
+musl-gcc -D_DEFAULT_SOURCE -Werror -Wall  -std=c99 -pedantic -static -O3 -o obj/main.o -c main.c
+musl-gcc -D_DEFAULT_SOURCE -Werror -Wall  -std=c99 -pedantic -static -O3 -o obj/cmd.o -c cmd.c
+musl-gcc -D_DEFAULT_SOURCE -Werror -Wall  -std=c99 -pedantic -static -O3 -o obj/cfg.o -c cfg.c
+musl-gcc -D_DEFAULT_SOURCE -Werror -Wall  -std=c99 -pedantic -static -O3 -o obj/poll_linux.o -c compat/poll_linux.c
+musl-gcc -static -o imk obj/files.o obj/log.o obj/main.o obj/cmd.o obj/cfg.o obj/poll_linux.o
+strip imk
+install -o root -g root -m 755 imk /usr/local/bin/
+rm -f *.core
+rm -f build_host.h
+rm -f imk
+rm -rf ./obj
+
+$ ls -alh /usr/local/bin/imk
+-rwxr-xr-x 1 root root 70K May 18 16:49 /usr/local/bin/imk
+
+$ file /usr/local/bin/imk
+/usr/local/bin/imk: ELF 64-bit LSB executable, x86-64, version 1 (SYSV), statically linked, stripped
+```
+
+Usage
+-----
 ```bash
 $ ./imk -h
 usage: imk -c <command> [options] <file/dir ...>

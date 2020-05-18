@@ -42,19 +42,19 @@ else
 	VERSION := "$(REVCNT).$(REVHASH)$(ISCLEAN)"
 endif
 
-all :: debug
+all : debug
 
-debug :: CFLAGS += -g -ggdb -DDEBUG
-debug :: LFLAGS += -g
-debug :: build
+debug : CFLAGS += -g -ggdb -DDEBUG
+debug : LFLAGS += -g
+debug : build
 
-release :: CFLAGS += -O3
-release :: clean build
+release : CFLAGS += -O3
+release : clean build
 	strip $(TARGET)
 
-static :: CFLAGS += -static
-static :: LFLAGS += -static
-static :: release
+static : CFLAGS += -static
+static : LFLAGS += -static
+static : release
 
 build : $(OBJDIR) $(BUILD_HOST) $(TARGET)
 
@@ -77,16 +77,13 @@ $(OBJDIR)/%.o : %.c
 $(OBJDIR)/%.o : compat/%.c
 	$(CC) $(CFLAGS) -o $@ -c $<
 
-install :: release
+install :
 	$(INSTALL) $(INSTALL_ARGS) $(TARGET) $(INSTALL_DIR)
 
-install-static :: static
-	$(INSTALL) $(INSTALL_ARGS) $(TARGET) $(INSTALL_DIR)
-
-clean ::
+clean :
 	-rm -f *.core
 	-rm -f $(BUILD_HOST)
 	-rm -f $(TARGET)
 	-rm -rf ./$(OBJDIR)
 
-.PHONY :: all build debug release static install install-static clean
+.PHONY : all build debug release static install install-static clean

@@ -58,7 +58,7 @@ $(TARGET): $(BUILD_HOST) $(OBJ)
 .c.o:
 	$(CC) $(CFLAGS) -o $@ -c $?
 
-install: release
+install:
 	$(INSTALL) $(INSTALL_ARGS) $(TARGET) $(INSTALL_DIR)
 	@echo "DONE"
 
