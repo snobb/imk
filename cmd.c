@@ -66,6 +66,14 @@ cmd_print_header(const struct command *cmd)
             printf("cmd-teardown[%s] ", cmd->teardown);
         }
     }
+
+    if (cmd->spawn) {
+        printf("cmd-spawn ");
+    }
+
+    if (cmd->wrap_shell) {
+        printf("cmd-wrap-shell ");
+    }
 }
 
 int
