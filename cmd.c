@@ -47,7 +47,7 @@ cmd_make()
 int
 cmd_run(const struct command *cmd)
 {
-    if (cmd->spawn || cmd->timeout_ms > 0 || cmd->teardown) {
+    if (cmd->spawn) {
         return run_spawn(cmd);
     } else {
         return run_system(cmd);

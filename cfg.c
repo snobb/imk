@@ -47,10 +47,12 @@ cfg_parse_args(struct config *cfg, int argc, char **argv)
 
             case 'd':
                 cfg->cmd->teardown = optarg;
+                cfg->cmd->spawn = true;
                 break;
 
             case 'k':
                 cfg->cmd->timeout_ms = atoi(optarg);
+                cfg->cmd->spawn = true;
                 break;
 
             case 'o':
