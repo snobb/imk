@@ -164,7 +164,7 @@ usage(const char *pname)
             "   The options are as follows:\n"
             "      -c <cmd>   - command to execute when event is triggered\n"
             "      -d <cmd>   - teardown command to execute when -k timeout occurs "
-            "(assumes -w)\n"
+            "(assumes -w). The PID is available in CMD_PID environment variable.\n"
             "      -h         - display this text and exit\n"
             "      -k <ms>    - timeout after which to kill the command subproces "
             "(default - do not kill. Assumes -w.)\n"
