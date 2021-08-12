@@ -12,12 +12,14 @@
 #include "log.h"
 #include "cmd.h"
 
+static long current_time_ms();
 static int exec_command(const struct command *cmd);
+static int fork_wait(pid_t pid, int timeout_ms, int *status);
 static void parse_args(char *line, char **argv);
 static int run_system(const struct command *cmd);
 static int run_spawn(const struct command *cmd);
-static int fork_wait(pid_t pid, int timeout_ms, int *status);
-static long current_time_ms();
+static void set_env_var(pid_t pid);
+static void teardown(const char *teardown);
 
 #define KILLSIG SIGINT
 #define CMD_WORDS 255
@@ -102,6 +104,11 @@ run_spawn(const struct command *cmd)
     }
 
     if (pid == 0) {
+        if (setsid() == -1) {
+            LOG_PERROR("setsid");
+            return 1;
+        }
+
         exit(exec_command(cmd));
     }
 
@@ -120,20 +127,11 @@ run_spawn(const struct command *cmd)
 
         case RET_TIMEOUT:
             if (cmd->teardown) {
-                char buf[32];
-                sprintf(buf, "%d", pid);
-                setenv("CMD_PID", buf, true);
-                LOG_INFO_VA("=== teardown: [%s] ===", cmd->teardown);
-                int status = system(cmd->teardown);
-
-                if (status == -1) {
-                    LOG_PERROR("system teardown");
-                } else {
-                    LOG_INFO_VA("=== teardown: exit code %d ===", status);
-                }
+                set_env_var(pid);
+                teardown(cmd->teardown);
             } else {
-                if (kill(pid, KILLSIG) == -1) {
-                    LOG_PERROR("timeout kill");
+                if (killpg(pid, KILLSIG) == -1) {
+                    LOG_PERROR("killpg");
                 } else {
                     LOG_INFO_VA("=== pid %d, killed with: %d (timeout) ===", pid, KILLSIG);
                 }
@@ -209,5 +207,24 @@ parse_args(char *line, char **argv)
     while (token != NULL) {
         token = strtok(NULL, delim);
         *argv++ = token;
+    }
+}
+
+void
+set_env_var(pid_t pid) {
+    char buf[32];
+    sprintf(buf, "%d", pid);
+    setenv("CMD_PID", buf, true);
+}
+
+void
+teardown(const char *teardown) {
+    LOG_INFO_VA("=== teardown: [%s] ===", teardown);
+    int status = system(teardown);
+
+    if (status == -1) {
+        LOG_PERROR("system teardown");
+    } else {
+        LOG_INFO_VA("=== teardown: exit code %d ===", status);
     }
 }
