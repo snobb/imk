@@ -15,9 +15,9 @@
 #define ALLOC 64
 #define MAXPATH 1024
 
-static int is_ignored(const char *name);
 static void add_file(const char *file);
 static int is_directory(const char *fname);
+static int is_ignored(const char *name);
 static int walk_dir(const char *dir);
 
 char **fstore = NULL;
@@ -60,7 +60,7 @@ files_free(void)
     free(fstore);
 }
 
-static void
+void
 add_file(const char *file)
 {
     if (fsize == fcap) {
@@ -76,7 +76,7 @@ add_file(const char *file)
     fstore[fsize++] = strdup(file);
 }
 
-static int
+int
 is_directory(const char *fname)
 {
     struct stat stbuf;
@@ -89,7 +89,7 @@ is_directory(const char *fname)
     return S_ISDIR(stbuf.st_mode);
 }
 
-static int
+int
 is_ignored(const char *name)
 {
     for (int i = 0; ignored[i] != NULL; i++) {
@@ -103,7 +103,7 @@ is_ignored(const char *name)
 
 /* got to the directory, make necessary checks and call (handle_files) to
  * handle the contents */
-static int
+int
 walk_dir(const char *dir)
 {
     char name[MAXPATH];
