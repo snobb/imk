@@ -25,6 +25,11 @@ main(int argc, char **argv)
 
     register_files(&cfg);
 
+    if (cfg.immediate_run) {
+        LOG_INFO_VA("=== immediate run: %s ===", cfg.cmd->path);
+        cmd_run(cfg.cmd);
+    }
+
     fd_dispatch(&cfg);
     fd_close(&cfg);
 

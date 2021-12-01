@@ -35,7 +35,7 @@ cfg_parse_args(struct config *cfg, int argc, char **argv)
 
     cfg->sleep_delay = DEFAULT_SLEEP_DELAY;
 
-    while ((ch = getopt(argc, argv, "c:d:hk:orsS:t:vw")) != -1) {
+    while ((ch = getopt(argc, argv, "c:d:ihk:orsS:t:vw")) != -1) {
         switch (ch) {
             case 'h':
                 usage(argv[0]);
@@ -48,6 +48,10 @@ cfg_parse_args(struct config *cfg, int argc, char **argv)
             case 'd':
                 cfg->cmd->teardown = optarg;
                 cfg->cmd->spawn = true;
+                break;
+
+            case 'i':
+                cfg->immediate_run = true;
                 break;
 
             case 'k':
@@ -165,6 +169,7 @@ usage(const char *pname)
             "      -c <cmd>   - command to execute when event is triggered\n"
             "      -d <cmd>   - teardown command to execute when -k timeout occurs "
             "(assumes -w). The PID is available in CMD_PID environment variable.\n"
+            "      -i         - run the command immediately before waiting for changes\n"
             "      -h         - display this text and exit\n"
             "      -k <ms>    - timeout after which to kill the command subproces "
             "(default - do not kill. Assumes -w.)\n"

@@ -7,8 +7,6 @@
 struct config {
     int threshold;
     int sleep_delay;
-    bool onerun;
-    bool recurse;
 
     struct command *cmd;
     char **files;
@@ -17,6 +15,10 @@ struct config {
     /* the fds array MUST have the same order as files */
     int *fds;
     size_t nfds;
+
+    bool onerun;
+    bool recurse;
+    bool immediate_run;
 };
 
 
