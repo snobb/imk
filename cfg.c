@@ -69,6 +69,7 @@ cfg_parse_args(struct config *cfg, int argc, char **argv)
 
             case 's':
                 cfg->cmd->wrap_shell = false;
+                cfg->cmd->spawn = true;
                 break;
 
             case 'S':
@@ -176,13 +177,14 @@ usage(const char *pname)
             "      -o         - exit after the first iteration\n"
             "      -r         - if a directory is supplied, add all its sub-directories "
             "as well\n"
-            "      -s         - do not run the command inside a shell (eg. /bin/sh -c <cmd>)\n"
+            "      -s         - do not wrap the command in a shell (assumes -w)\n"
             "      -S <ms>    - number of ms to sleep before reattaching in case of "
             "DELETE event (default 300)\n"
             "      -t <sec>   - number of seconds to skip after the last executed "
             "command (default 0)\n"
             "      -v         - display the version [%s]\n"
-            "      -w         - spawn a subprocess for command.\n"
+            "      -w         - spawn a subprocess for command (if not specified imk runs the command in a "
+            "libc system() which wraps the command in a shell like: sh -c 'cmd')\n"
             "      <file/dir ...> - list of files or folders to monitor\n\n"
             "   Please use quotes around the command and teardown command if it is "
             "composed of multiple words\n\n", pname, VERSION);

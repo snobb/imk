@@ -45,20 +45,21 @@ Usage
 -----
 ```bash
 $ ./imk -h
-usage: imk -c <command> [options] <file/dir ...>
+usage: ./imk -c <command> [options] <file/dir ...>
 
    The options are as follows:
       -c <cmd>   - command to execute when event is triggered
-      -d <cmd>   - teardown command to execute when -k timeout occurs (assumes -w)
+      -d <cmd>   - teardown command to execute when -k timeout occurs (assumes -w). The PID is available in CMD_PID environment variable.
+      -i         - run the command immediately before waiting for changes
       -h         - display this text and exit
       -k <ms>    - timeout after which to kill the command subproces (default - do not kill. Assumes -w.)
       -o         - exit after the first iteration
       -r         - if a directory is supplied, add all its sub-directories as well
-      -s         - do not run the command inside a shell (eg. /bin/sh -c <cmd>)
+      -s         - do not wrap the command in a shell (assumes -w)
       -S <ms>    - number of ms to sleep before reattaching in case of DELETE event (default 300)
       -t <sec>   - number of seconds to skip after the last executed command (default 0)
       -v         - display the version [<version>]
-      -w         - spawn a subprocess for command.
+      -w         - spawn a subprocess for command (if not specified imk runs the command in a libc system() which wraps the command in a shell like: sh -c 'cmd')
       <file/dir ...> - list of files or folders to monitor
 
    Please use quotes around the command and teardown command if it is composed of multiple words

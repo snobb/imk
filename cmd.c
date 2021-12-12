@@ -15,9 +15,9 @@
 static long current_time_ms();
 static int exec_command(const struct command *cmd);
 static int fork_wait(pid_t pid, int timeout_ms, int *status);
-static void parse_args(char *line, char **argv);
+static void parse_args(char *line, char **argv, int maxlen);
 static int run_system(const struct command *cmd);
-static int run_spawn(const struct command *cmd);
+static int run_fork(const struct command *cmd);
 static void set_env_var(pid_t pid);
 static void teardown(const char *teardown);
 
@@ -50,7 +50,7 @@ int
 cmd_run(const struct command *cmd)
 {
     if (cmd->spawn) {
-        return run_spawn(cmd);
+        return run_fork(cmd);
     } else {
         return run_system(cmd);
     }
@@ -93,7 +93,7 @@ run_system(const struct command *cmd)
 }
 
 int
-run_spawn(const struct command *cmd)
+run_fork(const struct command *cmd)
 {
     int status;
     pid_t pid = 0;
@@ -190,7 +190,7 @@ exec_command(const struct command *cmd)
         rv = execl("/bin/sh", "sh", "-c", cmd->path, NULL);
     } else {
         char *argv[CMD_WORDS] = {0};
-        parse_args(cmd->path, argv);
+        parse_args(cmd->path, argv, CMD_WORDS);
         rv = execvp(*argv, argv);
     }
 
@@ -198,13 +198,14 @@ exec_command(const struct command *cmd)
 }
 
 void
-parse_args(char *line, char **argv)
+parse_args(char *line, char **argv, int maxlen)
 {
+    int i = 0;
     const char *delim = " ";
     char *token = strtok(line, delim);
     *argv++ = token;
 
-    while (token != NULL) {
+    while (token != NULL && ++i < maxlen) {
         token = strtok(NULL, delim);
         *argv++ = token;
     }
