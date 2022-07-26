@@ -1,5 +1,5 @@
 # use kr kernel style
-style=1tbs
+style=java
 
 # indenet with spaces
 indent=spaces=4
@@ -11,7 +11,7 @@ max-code-length=98
 max-instatement-indent=98
 
 # indent classes, so that public/private labels are indented
-indent-classes
+# indent-classes
 
 # Attach braces to class and struct inline function definitions.
 attach-inlines
@@ -24,7 +24,7 @@ attach-closing-while
 indent-switches
 
 # Indent 'case X:' blocks from the 'case X:' headers
-indent-cases
+# indent-cases
 
 # leave condition on the previous line
 break-after-logical
@@ -56,7 +56,10 @@ indent-preproc-define
 indent-preproc-block
 
 # insert empty lines around blocks
-break-blocks
+# break-blocks
+
+# Delete empty lines within a function or method.
+# delete-empty-lines
 
 # add brackets in 1 line 'if', 'for' and 'while' statements
 add-brackets
@@ -68,11 +71,19 @@ add-one-line-brackets
 # keep oneline statements unchanged
 keep-one-line-statements
 
+# else is on a separate line
+# break-closing-brackets
+# break-elseifs
+
 # Break the return type from the function name.
-break-return-type
+# break-return-type
+attach-return-type
 
 # bracket on the same line as namespaces
 attach-namespaces
 
 # indent one-line comments
 indent-col1-comments
+
+# add 2 indents when breaking a long line (VER >= 2.6)
+# indent-continuation=2

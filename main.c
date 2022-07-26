@@ -12,9 +12,7 @@
 
 void register_files(struct config *cfg);
 
-int
-main(int argc, char **argv)
-{
+int main(int argc, char **argv) {
     struct command cmd = cmd_make();
     struct config cfg = { 0, .cmd = &cmd };
     setbuf(stdout, NULL);
@@ -38,9 +36,7 @@ main(int argc, char **argv)
     return EXIT_SUCCESS;
 }
 
-void
-register_files(struct config *cfg)
-{
+void register_files(struct config *cfg) {
     for (int i = 0; i < cfg->nfiles; ++i) {
         fd_register(cfg, cfg->files[i]);
     }

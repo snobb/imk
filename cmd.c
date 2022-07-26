@@ -33,8 +33,7 @@ enum {
 
 
 struct command
-cmd_make()
-{
+cmd_make() {
     struct command ret = {
         .spawn = false,
         .wrap_shell = true,
@@ -46,9 +45,7 @@ cmd_make()
     return ret;
 }
 
-int
-cmd_run(const struct command *cmd)
-{
+int cmd_run(const struct command *cmd) {
     if (cmd->spawn) {
         return run_fork(cmd);
     } else {
@@ -56,9 +53,7 @@ cmd_run(const struct command *cmd)
     }
 }
 
-void
-cmd_print_header(const struct command *cmd)
-{
+void cmd_print_header(const struct command *cmd) {
     printf("cmd[%s] ", cmd->path);
 
     if (cmd->timeout_ms > 0) {
@@ -78,9 +73,7 @@ cmd_print_header(const struct command *cmd)
     }
 }
 
-int
-run_system(const struct command *cmd)
-{
+int run_system(const struct command *cmd) {
     int retcode = system(cmd->path);
 
     if (retcode < 0) {
@@ -92,9 +85,7 @@ run_system(const struct command *cmd)
     return retcode;
 }
 
-int
-run_fork(const struct command *cmd)
-{
+int run_fork(const struct command *cmd) {
     int status;
     pid_t pid = 0;
 
@@ -147,9 +138,7 @@ run_fork(const struct command *cmd)
     return status;
 }
 
-int
-fork_wait(pid_t pid, int timeout_ms, int *status)
-{
+int fork_wait(pid_t pid, int timeout_ms, int *status) {
     long start = current_time_ms();
     *status = -1;
 
@@ -173,17 +162,13 @@ fork_wait(pid_t pid, int timeout_ms, int *status)
     }
 }
 
-long
-current_time_ms()
-{
+long current_time_ms() {
     struct timeval time;
     gettimeofday(&time, NULL);
     return time.tv_sec * 1000 + time.tv_usec / 1000;
 }
 
-int
-exec_command(const struct command *cmd)
-{
+int exec_command(const struct command *cmd) {
     int rv = 0;
 
     if (cmd->wrap_shell) {
@@ -197,9 +182,7 @@ exec_command(const struct command *cmd)
     return rv;
 }
 
-void
-parse_args(char *line, char **argv, int maxlen)
-{
+void parse_args(char *line, char **argv, int maxlen) {
     int i = 0;
     const char *delim = " ";
     char *token = strtok(line, delim);
@@ -211,15 +194,13 @@ parse_args(char *line, char **argv, int maxlen)
     }
 }
 
-void
-set_env_var(pid_t pid) {
+void set_env_var(pid_t pid) {
     char buf[32];
     sprintf(buf, "%d", pid);
     setenv("CMD_PID", buf, true);
 }
 
-void
-teardown(const char *teardown) {
+void teardown(const char *teardown) {
     LOG_INFO_VA("=== teardown: [%s] ===", teardown);
     int status = system(teardown);
 

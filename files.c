@@ -25,9 +25,7 @@ size_t fsize = 0;
 size_t fcap = ALLOC;
 const char *ignored[] = { "/.git", "/.hg", NULL };
 
-char **
-files_parse(const char **args, size_t *nfiles)
-{
+char **files_parse(const char **args, size_t *nfiles) {
     assert(!fstore);
     fstore = malloc(sizeof(*fstore) * fcap);
 
@@ -50,9 +48,7 @@ files_parse(const char **args, size_t *nfiles)
     return fstore;
 }
 
-void
-files_free(void)
-{
+void files_free(void) {
     for (int i = 0; i < fsize; i++) {
         free(fstore[i]);
     }
@@ -60,9 +56,7 @@ files_free(void)
     free(fstore);
 }
 
-void
-add_file(const char *file)
-{
+void add_file(const char *file) {
     if (fsize == fcap) {
         fcap *= 2;
         fstore = realloc(fstore, sizeof(*fstore) * fcap);
@@ -76,9 +70,7 @@ add_file(const char *file)
     fstore[fsize++] = strdup(file);
 }
 
-int
-is_directory(const char *fname)
-{
+int is_directory(const char *fname) {
     struct stat stbuf;
 
     if (stat(fname, &stbuf) == -1) {
@@ -89,9 +81,7 @@ is_directory(const char *fname)
     return S_ISDIR(stbuf.st_mode);
 }
 
-int
-is_ignored(const char *name)
-{
+int is_ignored(const char *name) {
     for (int i = 0; ignored[i] != NULL; i++) {
         if (strstr(name, ignored[i]) != NULL) {
             return 1;
@@ -103,9 +93,7 @@ is_ignored(const char *name)
 
 /* got to the directory, make necessary checks and call (handle_files) to
  * handle the contents */
-int
-walk_dir(const char *dir)
-{
+int walk_dir(const char *dir) {
     char name[MAXPATH];
     struct dirent *dp;
     DIR *dfd;

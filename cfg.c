@@ -17,15 +17,11 @@
 
 static void usage(const char *pname);
 
-inline void
-cfg_add_fd(struct config *cfg, int fd)
-{
+inline void cfg_add_fd(struct config *cfg, int fd) {
     cfg->fds[cfg->nfds++] = fd;
 }
 
-void
-cfg_parse_args(struct config *cfg, int argc, char **argv)
-{
+void cfg_parse_args(struct config *cfg, int argc, char **argv) {
     int ch;
     opterr = 0;
 
@@ -117,9 +113,7 @@ cfg_parse_args(struct config *cfg, int argc, char **argv)
     }
 }
 
-void
-cfg_free(const struct config *cfg)
-{
+void cfg_free(const struct config *cfg) {
     if (cfg->fds) {
         free(cfg->fds);
     }
@@ -127,9 +121,7 @@ cfg_free(const struct config *cfg)
     files_free();
 }
 
-void
-cfg_print_header(const struct config *cfg)
-{
+void cfg_print_header(const struct config *cfg) {
     printf(":: [%s] start monitoring: ", get_time());
     cmd_print_header(cfg->cmd);
 
@@ -162,9 +154,7 @@ cfg_print_header(const struct config *cfg)
     printf("]\n");
 }
 
-void
-usage(const char *pname)
-{
+void usage(const char *pname) {
     fprintf(stdout, "usage: %s -c <command> [options] <file/dir ...>\n\n"
             "   The options are as follows:\n"
             "      -c <cmd>   - command to execute when event is triggered\n"
