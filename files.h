@@ -4,6 +4,6 @@
 #include <stdlib.h>
 
 char **files_parse(const char **args, size_t *nfiles);
-void files_free();
+void files_free(void);
 
 #endif /* __FILES_H__ */

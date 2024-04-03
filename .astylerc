@@ -8,7 +8,7 @@ indent=spaces=4
 max-code-length=98
 
 # Set the  maximum of # spaces to indent a continuation line
-max-instatement-indent=98
+# max-instatement-indent=98
 
 # indent classes, so that public/private labels are indented
 # indent-classes
@@ -62,11 +62,11 @@ indent-preproc-block
 # delete-empty-lines
 
 # add brackets in 1 line 'if', 'for' and 'while' statements
-add-brackets
-add-braces
+# add-brackets
+# add-braces
 
 # add brackets even to one-line statements
-add-one-line-brackets
+# add-one-line-brackets
 
 # keep oneline statements unchanged
 keep-one-line-statements
