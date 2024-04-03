@@ -33,7 +33,7 @@ ifeq ($(CC), $(filter $(CC), clang gcc cc musl-gcc))
 endif
 
 # version info from git
-REVCNT := $(shell git rev-list --count master 2>/dev/null)
+REVCNT := $(shell git rev-list --count main 2>/dev/null)
 ifeq ($(REVCNT),)
 	VERSION := devel
 else

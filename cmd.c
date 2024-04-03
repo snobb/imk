@@ -12,7 +12,7 @@
 #include "log.h"
 #include "cmd.h"
 
-static long current_time_ms();
+static long current_time_ms(void);
 static int exec_command(const struct command *cmd);
 static int fork_wait(pid_t pid, int timeout_ms, int *status);
 static void parse_args(char *line, char **argv, int maxlen);
@@ -31,9 +31,7 @@ enum {
     RET_ERROR
 };
 
-
-struct command
-cmd_make() {
+struct command cmd_make(void) {
     struct command ret = {
         .spawn = false,
         .wrap_shell = true,
@@ -162,7 +160,7 @@ int fork_wait(pid_t pid, int timeout_ms, int *status) {
     }
 }
 
-long current_time_ms() {
+long current_time_ms(void) {
     struct timeval time;
     gettimeofday(&time, NULL);
     return time.tv_sec * 1000 + time.tv_usec / 1000;

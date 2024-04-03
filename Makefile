@@ -27,7 +27,7 @@ LFLAGS          := $(LIBS)
 .endif
 
 # version info from git
-REVCNT         != (git rev-list --count master 2>/dev/null)
+REVCNT         != (git rev-list --count main 2>/dev/null)
 .if !defined(REVCNT)
     VERSION := devel
 .else

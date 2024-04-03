@@ -11,7 +11,7 @@ struct command {
     const char *teardown;
 };
 
-struct command cmd_make();
+struct command cmd_make(void);
 int cmd_run(const struct command *cmd);
 void cmd_print_header(const struct command *cmd);
 
