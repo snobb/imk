@@ -2,15 +2,15 @@
  *  author: Aleksei Kozadaev (2019)
  */
 
-#include <errno.h>
+#include <assert.h>
 #include <dirent.h>
+#include <errno.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
-#include <assert.h>
 
-#include "log.h"
 #include "files.h"
+#include "log.h"
 
 #define ALLOC 64
 #define MAXPATH 1024
@@ -23,7 +23,16 @@ static int walk_dir(const char *dir);
 char **fstore = NULL;
 size_t fsize = 0;
 size_t fcap = ALLOC;
-const char *ignored[] = { "/.git", "/.hg", NULL };
+const char *ignored[] = {
+    "/.git",
+    "/.hg",
+    "/node_modules",
+    "/zig-cache",
+    "/.DS_Store",
+    "/__pycache__",
+    "/.pytest_cache",
+    NULL
+};
 
 char **files_parse(const char **args, size_t *nfiles) {
     assert(!fstore);
@@ -123,11 +132,18 @@ int walk_dir(const char *dir) {
                 continue;
             }
 
+            // add parent folder and then recurse and add containing files.
             add_file(name);
 
             if (walk_dir(name) == -1) {
                 goto error;
             }
+
+        } else if (dp->d_type == DT_REG) {
+            sprintf(name, "%s/%s", dir, dp->d_name);
+
+            // add individual file.
+            add_file(name);
         }
 
         /* ignore everything else */
@@ -135,8 +151,8 @@ int walk_dir(const char *dir) {
 
     closedir(dfd);
     return 0;
-error:
 
+error:
     if (dfd) {
         closedir(dfd);
     }

@@ -4,17 +4,17 @@ Simple file watcher similar to fswatch or inotify-wait that works both in linux 
 
 Install
 -------
-```bash
+```
 make release && sudo make install clean
 ```
 
 to build and install a statically linked version:
-```bash
+```
 make static && sudo make install clean
 ```
 
 To build a small static binary, the musl libc can be used as follows:
-```bash
+```
 $ make static CC=musl-gcc && sudo make install clean
 rm -f *.core
 rm -f build_host.h
@@ -43,7 +43,7 @@ $ file /usr/local/bin/imk
 
 Usage
 -----
-```bash
+```
 $ ./imk -h
 usage: ./imk -c <command> [options] <file/dir ...>
 
@@ -67,7 +67,7 @@ usage: ./imk -c <command> [options] <file/dir ...>
 
 To monitor all .c files and run make run the following:
 
-```bash
+```
 $ ./imk -c 'make release' *.c
 :: [20:00:00] start monitoring: cmd[make release] files[log.c main.c]
 ```
